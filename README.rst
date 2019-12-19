@@ -1,5 +1,6 @@
-Demo of Qboost
-==============
+======
+Qboost
+======
 The D-Wave quantum computer has been widely studied as a discrete optimization
 engine that accepts any problem formulated as quadratic unconstrained binary
 optimization (QUBO). In 2008, Google and D-Wave published a paper,
@@ -34,5 +35,5 @@ Classifier with the Quantum Adiabatic Algorithm", `arXiv:0811.0416v1 <https://ar
 
 License
 -------
-Released under the Apache License 2.0. See `LICENSE <../LICENSE>`_ file.
+Released under the Apache License 2.0. See `LICENSE <LICENSE>`_ file.
 
