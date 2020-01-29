@@ -22,7 +22,8 @@ designed for performance.
 
 Usage
 -----
-A minimal working example using the main interface function can be seen by running:
+A minimal working example using the main interface function can be seen by
+running:
 
 .. code-block:: bash
 
@@ -31,7 +32,8 @@ A minimal working example using the main interface function can be seen by runni
 References
 ----------
 H. Neven, V. S. Denchev, G. Rose, and W. G. Macready, "Training a Binary
-Classifier with the Quantum Adiabatic Algorithm", `arXiv:0811.0416v1 <https://arxiv.org/pdf/0811.0416.pdf>`_
+Classifier with the Quantum Adiabatic Algorithm", `arXiv:0811.0416v1
+<https://arxiv.org/pdf/0811.0416.pdf>`_
 
 License
 -------
