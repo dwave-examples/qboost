@@ -1,3 +1,7 @@
+.. image:: https://circleci.com/gh/dwave-examples/qboost.svg?style=svg
+    :target: https://circleci.com/gh/dwave-examples/qboost
+    :alt: Linux/Mac/Windows build status
+
 ======
 Qboost
 ======
