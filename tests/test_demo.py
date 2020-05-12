@@ -14,6 +14,7 @@
 
 import os
 import subprocess
+import sys
 import unittest
 
 # /path/to/demos/qboost/tests/test_demo.py
@@ -25,5 +26,6 @@ class TestDemo(unittest.TestCase):
         """run demo.py and check that nothing crashes"""
 
         demo_file = os.path.join(project_dir, 'demo.py')
-        subprocess.check_output(["python", demo_file, "--mnist", "--wisc"])
+        subprocess.check_output([sys.executable, demo_file, "--mnist",
+                                 "--wisc"])
 
