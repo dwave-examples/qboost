@@ -15,7 +15,7 @@
 import os
 import subprocess
 import unittest
-
+import sys
 # /path/to/demos/qboost/tests/test_demo.py
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,5 +25,22 @@ class TestDemo(unittest.TestCase):
         """run demo.py and check that nothing crashes"""
 
         demo_file = os.path.join(project_dir, 'demo.py')
-        subprocess.check_output(["python", demo_file, "--mnist", "--wisc"])
+        subprocess.check_output([sys.executable, demo_file, "--mnist", "--wisc"])
 
+    def test_qboost(self):
+        """run demo.py and check that nothing crashes"""
+
+        demo_file = os.path.join(project_dir, 'demo.py')
+        output = subprocess.check_output([sys.executable, demo_file,"--wisc","--mnist"])
+        output = str(output).upper()
+        if os.getenv('DEBUG_OUTPUT'):
+            print("Example output \n"+ output)
+
+        with self.subTest(msg="Verify if output contains 'accu (train):' \n"):
+            self.assertIn("accu (train):".upper(), output)
+        with self.subTest(msg="Verify if output contains 'DecisionTree' \n"):
+            self.assertIn("DecisionTree".upper(), output)
+        with self.subTest(msg="Verify if error string contains in output \n"):
+            self.assertNotIn("ERROR", output)
+        with self.subTest(msg="Verify if warning string contains in output \n"):
+            self.assertNotIn("WARNING", output)
