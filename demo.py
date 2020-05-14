@@ -67,23 +67,17 @@ def train_model(X_train, y_train, X_test, y_test, lmd):
     # input: dataset X and labels y (in {+1, -1}
 
     # Preprocessing data
-    imputer = SimpleImputer()
-    # scaler = preprocessing.MinMaxScaler()
-    scaler = preprocessing.StandardScaler()
-    normalizer = preprocessing.Normalizer()
-    centerer = preprocessing.KernelCenterer()
-
+    # imputer = SimpleImputer()
+    scaler = preprocessing.StandardScaler()     # standardize features
+    normalizer = preprocessing.Normalizer()     # normalize samples
 
     # X = imputer.fit_transform(X)
     X_train = scaler.fit_transform(X_train)
     X_train = normalizer.fit_transform(X_train)
-    X_train = centerer.fit_transform(X_train)
 
     # X_test = imputer.fit_transform(X_test)
     X_test = scaler.fit_transform(X_test)
     X_test = normalizer.fit_transform(X_test)
-    X_test = centerer.fit_transform(X_test)
-
 
     ## Adaboost
     print('\nAdaboost')
