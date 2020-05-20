@@ -31,10 +31,10 @@ class TestDemo(unittest.TestCase):
         """run demo.py and check that nothing crashes"""
 
         demo_file = os.path.join(project_dir, 'demo.py')
-        output = subprocess.check_output([sys.executable, demo_file,"--wisc","--mnist"])
+        output = subprocess.check_output([sys.executable, demo_file, "--wisc", "--mnist"])
         output = str(output).upper()
         if os.getenv('DEBUG_OUTPUT'):
-            print("Example output \n"+ output)
+            print("Example output \n" + output)
 
         with self.subTest(msg="Verify if output contains 'accu (train):' \n"):
             self.assertIn("accu (train):".upper(), output)
