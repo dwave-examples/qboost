@@ -13,25 +13,28 @@
 # limitations under the License.
 
 import os
-import subprocess
-import unittest
 import sys
+import unittest
+import subprocess
+
 # /path/to/demos/qboost/tests/test_demo.py
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class TestDemo(unittest.TestCase):
     def test_smoke(self):
-        """run demo.py and check that nothing crashes"""
+        """demo.py runs without crashing"""
 
         demo_file = os.path.join(project_dir, 'demo.py')
-        subprocess.check_output([sys.executable, demo_file, "--mnist", "--wisc"])
+        subprocess.check_output([sys.executable,
+                                 demo_file, "--mnist", "--wisc"])
 
     def test_qboost(self):
-        """run demo.py and check that nothing crashes"""
+        """demo.py runs and generates valid output"""
 
         demo_file = os.path.join(project_dir, 'demo.py')
-        output = subprocess.check_output([sys.executable, demo_file, "--wisc", "--mnist"])
+        output = subprocess.check_output([sys.executable,
+                                          demo_file, "--wisc", "--mnist"])
         output = str(output).upper()
         if os.getenv('DEBUG_OUTPUT'):
             print("Example output \n" + output)
