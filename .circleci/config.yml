@@ -215,10 +215,13 @@ jobs:
             - .\python
 
       # Set up virtual environment
+      # Note: pip>=19.2.3 is required for py38 (ABI flag "m" is no longer used,
+      # see: https://github.com/pypa/pip/pull/6874)
       - run:
           name: create virtualenv
           command: |
             .\pythonx86\tools\python.exe --version
+            .\pythonx86\tools\python.exe -m pip install --upgrade pip
             .\pythonx86\tools\python.exe -m pip install virtualenv
             .\pythonx86\tools\python.exe -m virtualenv env
 
