@@ -133,12 +133,12 @@ jobs:
 
       # Install python
       - restore_cache:
-          key: nuget-{{ .Environment.CIRCLE_JOB }}
+          key: v2-nuget-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: install python
           command: nuget install python -Version $env:PYTHON -ExcludeVersion -OutputDirectory .
       - save_cache:
-          key: nuget-{{ .Environment.CIRCLE_JOB }}
+          key: v2-nuget-{{ .Environment.CIRCLE_JOB }}
           paths:
             - .\python
 
@@ -152,7 +152,7 @@ jobs:
 
       # Install requirements
       - restore_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: v2-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
       - run: &win-install-dependencies-template
           name: install dependencies
           command: |
@@ -161,7 +161,7 @@ jobs:
             pip install -r requirements.txt
             pip install coverage
       - save_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: v2-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - env
 
@@ -205,12 +205,12 @@ jobs:
 
       # Install python
       - restore_cache:
-          key: nuget-{{ .Environment.CIRCLE_JOB }}
+          key: v2-nuget-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: install python
           command: nuget install pythonx86 -Version $env:PYTHON -ExcludeVersion -OutputDirectory .
       - save_cache:
-          key: nuget-{{ .Environment.CIRCLE_JOB }}
+          key: v2-nuget-{{ .Environment.CIRCLE_JOB }}
           paths:
             - .\python
 
@@ -224,10 +224,10 @@ jobs:
 
       # Install requirements
       - restore_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: v2-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
       - run: *win-install-dependencies-template
       - save_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: v2-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - env
 
