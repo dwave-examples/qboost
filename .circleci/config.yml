@@ -205,12 +205,12 @@ jobs:
 
       # Install python
       - restore_cache:
-          key: v2-nuget-{{ .Environment.CIRCLE_JOB }}
+          key: v3-nuget-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: install python
           command: nuget install pythonx86 -Version $env:PYTHON -ExcludeVersion -OutputDirectory .
       - save_cache:
-          key: v2-nuget-{{ .Environment.CIRCLE_JOB }}
+          key: v3-nuget-{{ .Environment.CIRCLE_JOB }}
           paths:
             - .\python
 
@@ -227,10 +227,10 @@ jobs:
 
       # Install requirements
       - restore_cache:
-          key: v2-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: v3-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
       - run: *win-install-dependencies-template
       - save_cache:
-          key: v2-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: v3-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - env
 
@@ -238,17 +238,17 @@ jobs:
       - run: *win-run-unittests-template
 
   test-win-py37x86:
-    <<: *win-tests-template
+    <<: *win-tests-template-x86
     environment:
       PYTHON: 3.7.5
 
   test-win-py36x86:
-    <<: *win-tests-template
+    <<: *win-tests-template-x86
     environment:
       PYTHON: 3.6.8
 
   test-win-py35x86:
-    <<: *win-tests-template
+    <<: *win-tests-template-x86
     environment:
       PYTHON: 3.5.4
 
