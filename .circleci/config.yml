@@ -95,7 +95,6 @@ jobs:
 
       - run: env/bin/coverage run -m unittest discover
 
-
   test-osx-py37:
     <<: *osx-tests-template
     environment:
@@ -133,12 +132,12 @@ jobs:
 
       # Install python
       - restore_cache:
-          key: nuget-{{ .Environment.CIRCLE_JOB }}
+          key: v2-nuget-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: install python
           command: nuget install python -Version $env:PYTHON -ExcludeVersion -OutputDirectory .
       - save_cache:
-          key: nuget-{{ .Environment.CIRCLE_JOB }}
+          key: v2-nuget-{{ .Environment.CIRCLE_JOB }}
           paths:
             - .\python
 
@@ -152,7 +151,7 @@ jobs:
 
       # Install requirements
       - restore_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: v2-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
       - run: &win-install-dependencies-template
           name: install dependencies
           command: |
@@ -161,7 +160,7 @@ jobs:
             pip install -r requirements.txt
             pip install coverage
       - save_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: v2-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - env
 
@@ -187,68 +186,6 @@ jobs:
     environment:
       PYTHON: 3.5.4
 
-  #
-  # Windows x86
-  #
-
-  test-win-py38x86: &win-tests-template-x86
-    executor:
-      name: win/default
-
-    environment:
-      PYTHON: 3.8.0
-
-    working_directory: ~/repo
-
-    steps:
-      - checkout
-
-      # Install python
-      - restore_cache:
-          key: nuget-{{ .Environment.CIRCLE_JOB }}
-      - run:
-          name: install python
-          command: nuget install pythonx86 -Version $env:PYTHON -ExcludeVersion -OutputDirectory .
-      - save_cache:
-          key: nuget-{{ .Environment.CIRCLE_JOB }}
-          paths:
-            - .\python
-
-      # Set up virtual environment
-      - run:
-          name: create virtualenv
-          command: |
-            .\pythonx86\tools\python.exe --version
-            .\pythonx86\tools\python.exe -m pip install virtualenv
-            .\pythonx86\tools\python.exe -m virtualenv env
-
-      # Install requirements
-      - restore_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
-      - run: *win-install-dependencies-template
-      - save_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
-          paths:
-            - env
-
-      # Run tests
-      - run: *win-run-unittests-template
-
-  test-win-py37x86:
-    <<: *win-tests-template
-    environment:
-      PYTHON: 3.7.5
-
-  test-win-py36x86:
-    <<: *win-tests-template
-    environment:
-      PYTHON: 3.6.8
-
-  test-win-py35x86:
-    <<: *win-tests-template
-    environment:
-      PYTHON: 3.5.4
-
 
 workflows:
   version: 2.1
@@ -266,8 +203,3 @@ workflows:
       - test-win-py37
       - test-win-py36
       - test-win-py35
-      - test-win-py38x86
-      - test-win-py37x86
-      - test-win-py36x86
-      - test-win-py35x86
-
