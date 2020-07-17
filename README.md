@@ -5,10 +5,8 @@
 The D-Wave quantum computer has been widely studied as a discrete optimization
 engine that accepts any problem formulated as quadratic unconstrained binary
 optimization (QUBO). In 2008, Google and D-Wave published a paper,
-`Training a Binary Classifier with the Quantum Adiabatic Algorithm
-<https://arxiv.org/pdf/0811.0416.pdf>`_, which describes how the Qboost
-ensemble method makes binary classification amenable to quantum computing: 
-the problem is formulated as a thresholded linear superposition of a set of
+[Training a Binary Classifier with the Quantum Adiabatic Algorithm](https://arxiv.org/pdf/0811.0416.pdf), which describes how the Qboost
+ensemble method makes binary classification amenable to quantum computing: the problem is formulated as a thresholded linear superposition of a set of
 weak classifiers and the D-Wave quantum computer is  used to optimize the
 weights in a learning process that strives to minimize the training error
 and number of weak classifiers
@@ -31,8 +29,7 @@ running:
 ## References
 
 H. Neven, V. S. Denchev, G. Rose, and W. G. Macready, "Training a Binary
-Classifier with the Quantum Adiabatic Algorithm", `arXiv:0811.0416v1
-<https://arxiv.org/pdf/0811.0416.pdf>`_
+Classifier with the Quantum Adiabatic Algorithm", [arXiv:0811.0416v1](https://arxiv.org/pdf/0811.0416.pdf)
 
 ## License
 
