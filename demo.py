@@ -118,7 +118,6 @@ def train_model(X_train, y_train, X_test, y_test, lmd):
                  # "answer_mode": "histogram",
                  'num_spin_reversal_transforms': 10,
                  # 'annealing_time': 10,
-                 'postprocess': 'optimization',
                  }
 
     clf3 = QBoostClassifier(n_estimators=NUM_WEAK_CLASSIFIERS, max_depth=TREE_DEPTH)
