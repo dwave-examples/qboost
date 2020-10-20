@@ -51,8 +51,7 @@ def train_model(X_train, y_train, X_test, y_test, lmd):
     TREE_DEPTH = 3
 
     # define sampler
-    dwave_sampler = DWaveSampler(solver={'qpu': True})
-    # sa_sampler = micro.dimod.SimulatedAnnealingSampler()
+    dwave_sampler = DWaveSampler()
     emb_sampler = EmbeddingComposite(dwave_sampler)
 
     N_train = len(X_train)
