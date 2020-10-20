@@ -52,7 +52,6 @@ def train_model(X_train, y_train, X_test, y_test, lmd):
 
     # define sampler
     dwave_sampler = DWaveSampler()
-    # sa_sampler = micro.dimod.SimulatedAnnealingSampler()
     emb_sampler = EmbeddingComposite(dwave_sampler)
 
     N_train = len(X_train)
