@@ -34,16 +34,21 @@ def metric(y, y_pred):
     return metrics.accuracy_score(y, y_pred)
 
 
-def train_model(X_train, y_train, X_test, y_test, lmd):
+def train_models(X_train, y_train, X_test, y_test, lmd):
     """
-    Train qboost model
-
-    :param X_train: train input
-    :param y_train: train label
-    :param X_test: test input
-    :param y_test: test label
-    :param lmd: lmbda to control regularization term
-    :return:
+    Train a series of 4 boosted classification models.
+    
+    Args:
+        X_train (array):
+            2D array of features for training
+        y_train (array):
+            1D array of labels for training
+        X_test (array):
+            2D array of features for testing
+        y_test (array):
+            1D array of labels for testing
+        lam (float):
+            lambda parameter to control regularization term
     """
     NUM_READS = 3000
     NUM_WEAK_CLASSIFIERS = 35
@@ -185,7 +190,7 @@ if __name__ == '__main__':
         y_train = 2*(mnist['target'][idx_train] <= '4') - 1
         y_test = 2*(mnist['target'][idx_test] <= '4') - 1
 
-        clfs = train_model(X_train, y_train, X_test, y_test, 1.0)
+        train_models(X_train, y_train, X_test, y_test, 1.0)
 
     if '--wisc' in sys.argv:
 
@@ -204,4 +209,4 @@ if __name__ == '__main__':
         y_train = 2 * wisc.target[idx_train] - 1  # binary -> spin
         y_test = 2 * wisc.target[idx_test] - 1
 
-        clfs = train_model(X_train, y_train, X_test, y_test, 1.0)
+        train_models(X_train, y_train, X_test, y_test, 1.0)
