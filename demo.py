@@ -63,7 +63,7 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
     N_test = len(X_test)
 
     print("\n======================================")
-    print("Train#: %d, Test: %d" %(N_train, N_test))
+    print("Train: {}, Test: {}".format(N_train, N_test))
     print('Num weak classifiers:', NUM_WEAK_CLASSIFIERS)
     print('Tree depth:', TREE_DEPTH)
 
@@ -98,8 +98,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
     y_train_pred = clf.predict(X_train)
     y_test_pred = clf.predict(X_test)
 
-    print('accu (train): %5.2f'%(metric(y_train, y_train_pred)))
-    print('accu (test): %5.2f'%(metric(y_test, y_test_pred)))
+    print('accu (train): {:5.2f}'.format(metric(y_train, y_train_pred)))
+    print('accu (test): {:5.2f}'.format(metric(y_test, y_test_pred)))
 
     # Ensembles of Decision Tree
     print('\nDecision tree')
@@ -111,8 +111,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
     y_test_pred2 = clf2.predict(X_test)
     print(clf2.estimator_weights)
 
-    print('accu (train): %5.2f' % (metric(y_train, y_train_pred2)))
-    print('accu (test): %5.2f' % (metric(y_test, y_test_pred2)))
+    print('accu (train): {:5.2f}'.format(metric(y_train, y_train_pred2)))
+    print('accu (test): {:5.2f}'.format(metric(y_test, y_test_pred2)))
 
     # Ensembles of Decision Tree
     print('\nQBoost')
@@ -132,8 +132,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
 
     print(clf3.estimator_weights)
 
-    print('accu (train): %5.2f' % (metric(y_train, y_train_dw)))
-    print('accu (test): %5.2f' % (metric(y_test, y_test_dw)))
+    print('accu (train): {:5.2f}'.format(metric(y_train, y_train_dw)))
+    print('accu (test): {:5.2f}'.format(metric(y_test, y_test_dw)))
 
 
     # Ensembles of Decision Tree
@@ -144,17 +144,17 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
     y_test4 = clf4.predict(X_test)
     print(clf4.estimator_weights)
 
-    print('accu (train): %5.2f' % (metric(y_train, y_train4)))
-    print('accu (test): %5.2f' % (metric(y_test, y_test4)))
+    print('accu (train): {:5.2f}'.format(metric(y_train, y_train4)))
+    print('accu (test): {:5.2f}'.format(metric(y_test, y_test4)))
 
 
     print("=============================================")
     print("Method \t Adaboost \t DecisionTree \t Qboost \t QboostIt")
-    print("Train\t %5.2f \t\t %5.2f \t\t\t %5.2f \t\t %5.2f"% (metric(y_train, y_train_pred),
+    print("Train\t {:5.2f} \t\t {:5.2f} \t\t\t {:5.2f} \t\t {:5.2f}".format(metric(y_train, y_train_pred),
                                                                metric(y_train, y_train_pred2),
                                                                metric(y_train, y_train_dw),
                                                                metric(y_train, y_train4)))
-    print("Test\t %5.2f \t\t %5.2f \t\t\t %5.2f \t\t %5.2f"% (metric(y_test, y_test_pred),
+    print("Test\t {:5.2f} \t\t {:5.2f} \t\t\t {:5.2f} \t\t {:5.2f}".format(metric(y_test, y_test_pred),
                                                               metric(y_test,y_test_pred2),
                                                               metric(y_test, y_test_dw),
                                                               metric(y_test, y_test4)))
