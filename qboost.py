@@ -19,9 +19,19 @@ import numpy as np
 from copy import deepcopy
 
 def weight_penalty(prediction, y, percent = 0.1): 
-    """
-    For Regression we have to introduce a metric to penalize differences of the prediction from the label y.
-    Percent gives the maximum deviation of the prediction from the label that is not penalized.
+    """Compute normalized penalty values for regression predictions.
+    
+    For Regression we have to introduce a metric to penalize
+    differences of the prediction from the label y.
+
+    Args:
+        prediction (array):
+            Array of regression predictions
+        y (array):
+            Array of training values
+        percent (float):
+            Maximum deviation of the prediction from the label that is
+            not penalized
     """
     diff = np.abs(prediction-y)
     min_ = diff.min()
@@ -29,6 +39,7 @@ def weight_penalty(prediction, y, percent = 0.1):
     norm = (diff-min_)/(max_-min_)
     norm = 1.0*(norm  < percent)  
     return norm
+
 
 class WeakClassifiers(object):
     """
@@ -48,11 +59,13 @@ class WeakClassifiers(object):
                             for _ in range(self.n_estimators)]
 
     def fit(self, X, y):
-        """
-        fit estimators
-        :param X:
-        :param y:
-        :return:
+        """Fit estimators.
+
+        Args:
+            X (array):
+                2D array of features
+            y (array):
+                1D array of labels
         """
 
         self.estimator_weights = np.zeros(self.n_estimators)
@@ -70,10 +83,14 @@ class WeakClassifiers(object):
             self.estimator_weights[i] = w
 
     def predict(self, X):
-        """
-        predict label of X
-        :param X:
-        :return:
+        """Predict labels of given feature vectors.
+
+        Args:
+            X (array):
+                2D array of features
+
+        Returns:
+            array
         """
 
         if not hasattr(self, 'estimator_weights'):
@@ -168,11 +185,13 @@ class WeakRegressor(object):
 #                            for _ in range(self.n_estimators)]
 
     def fit(self, X, y):
-        """
-        fit estimators
-        :param X:
-        :param y:
-        :return:
+        """Fit estimators.
+
+        Args:
+            X (array):
+                2D array of features
+            y (array):
+                1D array of values
         """
 
         self.estimator_weights = np.zeros(self.n_estimators) #initialize all estimator weights to zero
@@ -193,10 +212,14 @@ class WeakRegressor(object):
             self.estimator_weights[i] = w
 
     def predict(self, X):
-        """
-        predict label of X
-        :param X:
-        :return:
+        """Predict values of given feature vectors.
+
+        Args:
+            X (array):
+                2D array of features
+
+        Returns:
+            array
         """
 
         if not hasattr(self, 'estimator_weights'):
@@ -283,7 +306,6 @@ class QBoostRegressor(WeakRegressor):
 
 class QboostPlus(object):
     """
-    Only for Classifiers
     Quantum boost existing (weak) classifiers
     """
 
@@ -333,6 +355,7 @@ class QboostPlus(object):
         y = np.sign(y - T / (n_data*self.n_estimators))
 
         return y
+
 
 class QboostPlusRegression(object):
     """
