@@ -148,17 +148,15 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
     print('accu (test): {:5.2f}'.format(metric(y_test, y_test4)))
 
 
-    print("=============================================")
-    print("Method \t Adaboost \t DecisionTree \t Qboost \t QboostIt")
-    print("Train\t {:5.2f} \t\t {:5.2f} \t\t\t {:5.2f} \t\t {:5.2f}".format(metric(y_train, y_train_pred),
-                                                               metric(y_train, y_train_pred2),
-                                                               metric(y_train, y_train_dw),
-                                                               metric(y_train, y_train4)))
-    print("Test\t {:5.2f} \t\t {:5.2f} \t\t\t {:5.2f} \t\t {:5.2f}".format(metric(y_test, y_test_pred),
-                                                              metric(y_test,y_test_pred2),
-                                                              metric(y_test, y_test_dw),
-                                                              metric(y_test, y_test4)))
-    print("=============================================")
+    print()
+    print('=' * 28)
+    print("{:14}{:7}{:7}".format("Method", "Train", "Test"))
+    print('-' * 28)
+    for name, _y_train_pred, _y_test_pred in zip(["Adaboost", "DecisionTree", "Qboost", "QboostIt"],
+                                                 [y_train_pred, y_train_pred2, y_train_dw, y_train4],
+                                                 [y_test_pred, y_test_pred2, y_test_dw, y_test4]):
+        print("{:14}{:<7.2f}{:<7.2f}".format(name, metric(y_train, _y_train_pred), metric(y_test, _y_test_pred)))
+    print('=' * 28)
 
     # plt.subplot(211)
     # plt.bar(range(len(y_test)), y_test)
