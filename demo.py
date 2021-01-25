@@ -165,12 +165,6 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
         print("{:14}{:<7.2f}{:<7.2f}".format(name, metric(y_train, _y_train_pred), metric(y_test, _y_test_pred)))
     print('=' * 28)
 
-    # plt.subplot(211)
-    # plt.bar(range(len(y_test)), y_test)
-    # plt.subplot(212)
-    # plt.bar(range(len(y_test)), y_test_dw)
-    # plt.show()
-
     return
 
 
