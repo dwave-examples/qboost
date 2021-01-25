@@ -18,6 +18,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, AdaBoos
 import numpy as np
 from copy import deepcopy
 
+
 def weight_penalty(prediction, y, percent = 0.1): 
     """Compute normalized penalty values for regression predictions.
     
