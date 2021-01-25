@@ -34,7 +34,7 @@ def metric(y, y_pred):
     return metrics.accuracy_score(y, y_pred)
 
 
-def train_models(X_train, y_train, X_test, y_test, lmd):
+def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     """
     Train a series of 4 boosted classification models.
     
@@ -49,6 +49,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
             1D array of labels for testing
         lam (float):
             lambda parameter to control regularization term
+        verbose (bool):
+            If True, print weak classifier weights
     """
     NUM_READS = 3000
     NUM_WEAK_CLASSIFIERS = 35
@@ -109,7 +111,9 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
 
     y_train_pred2 = clf2.predict(X_train)
     y_test_pred2 = clf2.predict(X_test)
-    print(clf2.estimator_weights)
+
+    if verbose:
+        print('weights:\n', clf2.estimator_weights)
 
     print('accu (train): {:5.2f}'.format(metric(y_train, y_train_pred2)))
     print('accu (test): {:5.2f}'.format(metric(y_test, y_test_pred2)))
@@ -130,7 +134,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
     y_train_dw = clf3.predict(X_train)
     y_test_dw = clf3.predict(X_test)
 
-    print(clf3.estimator_weights)
+    if verbose:
+        print('weights\n', clf3.estimator_weights)
 
     print('accu (train): {:5.2f}'.format(metric(y_train, y_train_dw)))
     print('accu (test): {:5.2f}'.format(metric(y_test, y_test_dw)))
@@ -142,7 +147,9 @@ def train_models(X_train, y_train, X_test, y_test, lmd):
     clf4.fit(X_train, y_train, emb_sampler, lmd=lmd, **DW_PARAMS)
     y_train4 = clf4.predict(X_train)
     y_test4 = clf4.predict(X_test)
-    print(clf4.estimator_weights)
+
+    if verbose:
+        print('weights\n', clf4.estimator_weights)
 
     print('accu (train): {:5.2f}'.format(metric(y_train, y_train4)))
     print('accu (test): {:5.2f}'.format(metric(y_test, y_test4)))
