@@ -44,7 +44,7 @@ def weight_penalty(prediction, y, percent = 0.1):
 
 class WeakClassifiers(object):
     """
-    Collection of weak decision tree classifiers and boosting using AdaBoost.
+    Collection of weak decision-tree classifiers and boosting using AdaBoost.
     """
 
     def __init__(self, n_estimators=50, max_depth=3):
@@ -118,7 +118,7 @@ class WeakClassifiers(object):
 
 class QBoostClassifier(WeakClassifiers):
     """
-    Qboost classifier based on collection of weak decision tree classifiers.
+    Qboost classifier based on collection of weak decision-tree classifiers.
     """
     def __init__(self, n_estimators=50, max_depth=3):
         super(QBoostClassifier, self).__init__(n_estimators=n_estimators,
@@ -168,7 +168,7 @@ class QBoostClassifier(WeakClassifiers):
 
 class WeakRegressor(object):
     """
-    Collection of weak decision tree regressors and boosting using AdaBoost.
+    Collection of weak decision-tree regressors and boosting using AdaBoost.
     """
 
     def __init__(self, n_estimators=50, max_depth=3, DT = True, Ada = False, ):
@@ -247,7 +247,7 @@ class WeakRegressor(object):
 
 class QBoostRegressor(WeakRegressor):
     """
-    Qboost regressor based on collection of weak decision tree regressors.
+    Qboost regressor based on collection of weak decision-tree regressors.
     """
     def __init__(self, n_estimators=50, max_depth=3):
         super(QBoostRegressor, self).__init__(n_estimators=n_estimators,
