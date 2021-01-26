@@ -64,9 +64,9 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     N_train = len(X_train)
     N_test = len(X_test)
 
-    print("\n======================================")
-    print("Train: {}, Test: {}".format(N_train, N_test))
-    print('Num weak classifiers:', NUM_WEAK_CLASSIFIERS)
+    print('Size of training set:', N_train)
+    print('Size of test set:', N_test)
+    print('Number of weak classifiers:', NUM_WEAK_CLASSIFIERS)
     print('Tree depth:', TREE_DEPTH)
 
 
@@ -170,6 +170,8 @@ if __name__ == '__main__':
 
     if '--mnist' in sys.argv:
 
+        print('MNIST handwritten digits data set:')
+
         mnist = fetch_openml('mnist_784', version=1)
 
         idx = np.arange(len(mnist['data']))
@@ -190,6 +192,8 @@ if __name__ == '__main__':
         train_models(X_train, y_train, X_test, y_test, 1.0)
 
     if '--wisc' in sys.argv:
+
+        print('Wisonsin breast cancer data set:')
 
         wisc = load_breast_cancer()
 
