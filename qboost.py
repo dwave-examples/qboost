@@ -22,17 +22,17 @@ from copy import deepcopy
 def weight_penalty(prediction, y, percent = 0.1): 
     """Compute normalized penalty values for regression predictions.
     
-    For Regression we have to introduce a metric to penalize
+    For regression we have to introduce a metric to penalize
     differences of the prediction from the label y.
 
     Args:
         prediction (array):
-            Array of regression predictions
+            Array of regression predictions.
         y (array):
-            Array of training values
+            Array of training values.
         percent (float):
             Maximum deviation of the prediction from the label that is
-            not penalized
+            not penalized.
     """
     diff = np.abs(prediction-y)
     min_ = diff.min()
@@ -64,9 +64,9 @@ class WeakClassifiers(object):
 
         Args:
             X (array):
-                2D array of features
+                2D array of features.
             y (array):
-                1D array of labels
+                1D array of labels.
         """
 
         self.estimator_weights = np.zeros(self.n_estimators)
@@ -88,7 +88,7 @@ class WeakClassifiers(object):
 
         Args:
             X (array):
-                2D array of features
+                2D array of features.
 
         Returns:
             array
@@ -190,9 +190,9 @@ class WeakRegressor(object):
 
         Args:
             X (array):
-                2D array of features
+                2D array of features.
             y (array):
-                1D array of values
+                1D array of values.
         """
 
         self.estimator_weights = np.zeros(self.n_estimators) #initialize all estimator weights to zero
@@ -217,7 +217,7 @@ class WeakRegressor(object):
 
         Args:
             X (array):
-                2D array of features
+                2D array of features.
 
         Returns:
             array

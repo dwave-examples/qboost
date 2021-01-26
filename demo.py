@@ -40,17 +40,17 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     
     Args:
         X_train (array):
-            2D array of features for training
+            2D array of features for training.
         y_train (array):
-            1D array of labels for training
+            1D array of labels for training.
         X_test (array):
-            2D array of features for testing
+            2D array of features for testing.
         y_test (array):
-            1D array of labels for testing
+            1D array of labels for testing.
         lam (float):
-            lambda parameter to control regularization term
+            lambda parameter to control regularization term.
         verbose (bool):
-            If True, print weak classifier weights
+            If True, print weak classifier weights.
     """
     NUM_READS = 3000
     NUM_WEAK_CLASSIFIERS = 35
