@@ -34,6 +34,13 @@ def metric(y, y_pred):
     return metrics.accuracy_score(y, y_pred)
 
 
+def print_accuracy(y_train, y_train_pred, y_test, y_test_pred):
+    """Print information about accuracy."""
+
+    print('    Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_pred)))
+    print('    Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_pred)))
+
+
 def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     """
     Train a series of 4 boosted classification models.
@@ -98,8 +105,7 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     y_train_pred = clf.predict(X_train)
     y_test_pred = clf.predict(X_test)
 
-    print('Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_pred)))
-    print('Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_pred)))
+    print_accuracy(y_train, y_train_pred, y_test, y_test_pred)
 
     # Ensembles of Decision Tree
     print('\nDecision tree:')
@@ -113,8 +119,7 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     if verbose:
         print('weights:\n', clf2.estimator_weights)
 
-    print('Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_pred2)))
-    print('Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_pred2)))
+    print_accuracy(y_train, y_train_pred2, y_test, y_test_pred2)
 
     # Ensembles of Decision Tree
     print('\nQBoost:')
@@ -135,9 +140,7 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     if verbose:
         print('weights\n', clf3.estimator_weights)
 
-    print('Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_dw)))
-    print('Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_dw)))
-
+    print_accuracy(y_train, y_train_dw, y_test, y_test_dw)
 
     # Ensembles of Decision Tree
     print('\nQBoostPlus:')
@@ -149,8 +152,7 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     if verbose:
         print('weights\n', clf4.estimator_weights)
 
-    print('Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train4)))
-    print('Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test4)))
+    print_accuracy(y_train, y_train4, y_test, y_test4)
 
 
     print()
