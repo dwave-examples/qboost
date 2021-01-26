@@ -118,7 +118,7 @@ class WeakClassifiers(object):
 
 class QBoostClassifier(WeakClassifiers):
     """
-    Qboost classifier based on collection of weak decision-tree classifiers.
+    QBoost classifier based on collection of weak decision-tree classifiers.
     """
     def __init__(self, n_estimators=50, max_depth=3):
         super(QBoostClassifier, self).__init__(n_estimators=n_estimators,
@@ -247,7 +247,7 @@ class WeakRegressor(object):
 
 class QBoostRegressor(WeakRegressor):
     """
-    Qboost regressor based on collection of weak decision-tree regressors.
+    QBoost regressor based on collection of weak decision-tree regressors.
     """
     def __init__(self, n_estimators=50, max_depth=3):
         super(QBoostRegressor, self).__init__(n_estimators=n_estimators,
@@ -305,7 +305,7 @@ class QBoostRegressor(WeakRegressor):
         return y
 
 
-class QboostPlus(object):
+class QBoostPlus(object):
     """
     Quantum boost existing (weak) classifiers.
     """
@@ -358,7 +358,7 @@ class QboostPlus(object):
         return y
 
 
-class QboostPlusRegression(object):
+class QBoostPlusRegression(object):
     """
     Quantum boost existing (weak) regressors.
     """

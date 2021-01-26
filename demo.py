@@ -26,7 +26,7 @@ from sklearn.impute import SimpleImputer
 from dwave.system.samplers import DWaveSampler
 from dwave.system.composites import EmbeddingComposite
 
-from qboost import WeakClassifiers, QBoostClassifier, QboostPlus
+from qboost import WeakClassifiers, QBoostClassifier, QBoostPlus
 
 
 def metric(y, y_pred):
@@ -148,7 +148,7 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
 
     # ===============================================
     print('\nQBoostPlus:')
-    clf4 = QboostPlus([clf, clf2, clf3])
+    clf4 = QBoostPlus([clf, clf2, clf3])
     clf4.fit(X_train, y_train, emb_sampler, lmd=lmd, **DW_PARAMS)
     y_train4 = clf4.predict(X_train)
     y_test4 = clf4.predict(X_test)
@@ -163,7 +163,7 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     print('=' * 28)
     print("{:14}{:7}{:7}".format("Method", "Train", "Test"))
     print('-' * 28)
-    for name, _y_train_pred, _y_test_pred in zip(["Adaboost", "DecisionTree", "Qboost", "QboostIt"],
+    for name, _y_train_pred, _y_test_pred in zip(["Adaboost", "DecisionTree", "QBoost", "QBoostIt"],
                                                  [y_train_pred, y_train_pred2, y_train_dw, y_train4],
                                                  [y_test_pred, y_test_pred2, y_test_dw, y_test4]):
         print("{:14}{:<7.2f}{:<7.2f}".format(name, metric(y_train, _y_train_pred), metric(y_test, _y_test_pred)))
