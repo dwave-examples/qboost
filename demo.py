@@ -175,6 +175,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", choices=["mnist", "wisc"], help="data set to analyze")
+    parser.add_argument("--verbose", action="store_true", help="display additional output")
 
     args = parser.parse_args()
 
@@ -199,7 +200,7 @@ if __name__ == '__main__':
         y_train = 2*(mnist['target'][idx_train] <= '4') - 1
         y_test = 2*(mnist['target'][idx_test] <= '4') - 1
 
-        train_models(X_train, y_train, X_test, y_test, 1.0)
+        train_models(X_train, y_train, X_test, y_test, 1.0, verbose=args.verbose)
 
     elif args.dataset == 'wisc':
 
@@ -220,4 +221,4 @@ if __name__ == '__main__':
         y_train = 2 * wisc.target[idx_train] - 1  # binary -> spin
         y_test = 2 * wisc.target[idx_test] - 1
 
-        train_models(X_train, y_train, X_test, y_test, 1.0)
+        train_models(X_train, y_train, X_test, y_test, 1.0, verbose=args.verbose)
