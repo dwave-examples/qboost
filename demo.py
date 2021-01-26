@@ -197,7 +197,7 @@ if __name__ == '__main__':
 
     elif args.dataset == 'wisc':
 
-        print('Wisonsin breast cancer data set:')
+        print('Wisconsin breast cancer data set:')
 
         wisc = load_breast_cancer()
 
