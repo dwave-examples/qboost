@@ -65,7 +65,7 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     N_test = len(X_test)
 
     print('Size of training set:', N_train)
-    print('Size of test set:', N_test)
+    print('Size of test set:    ', N_test)
     print('Number of weak classifiers:', NUM_WEAK_CLASSIFIERS)
     print('Tree depth:', TREE_DEPTH)
 
@@ -86,25 +86,23 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     X_test = normalizer.fit_transform(X_test)
 
     ## Adaboost
-    print('\nAdaboost')
+    print('\nAdaboost:')
 
     clf = AdaBoostClassifier(n_estimators=NUM_WEAK_CLASSIFIERS)
 
     # scores = cross_val_score(clf, X, y, cv=5, scoring='accuracy')
-    print('fitting...')
     clf.fit(X_train, y_train)
 
     hypotheses_ada = clf.estimators_
     # clf.estimator_weights_ = np.random.uniform(0,1,size=NUM_WEAK_CLASSIFIERS)
-    print('testing...')
     y_train_pred = clf.predict(X_train)
     y_test_pred = clf.predict(X_test)
 
-    print('accu (train): {:5.2f}'.format(metric(y_train, y_train_pred)))
-    print('accu (test): {:5.2f}'.format(metric(y_test, y_test_pred)))
+    print('Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_pred)))
+    print('Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_pred)))
 
     # Ensembles of Decision Tree
-    print('\nDecision tree')
+    print('\nDecision tree:')
 
     clf2 = WeakClassifiers(n_estimators=NUM_WEAK_CLASSIFIERS, max_depth=TREE_DEPTH)
     clf2.fit(X_train, y_train)
@@ -115,11 +113,11 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     if verbose:
         print('weights:\n', clf2.estimator_weights)
 
-    print('accu (train): {:5.2f}'.format(metric(y_train, y_train_pred2)))
-    print('accu (test): {:5.2f}'.format(metric(y_test, y_test_pred2)))
+    print('Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_pred2)))
+    print('Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_pred2)))
 
     # Ensembles of Decision Tree
-    print('\nQBoost')
+    print('\nQBoost:')
 
     DW_PARAMS = {'num_reads': NUM_READS,
                  'auto_scale': True,
@@ -137,12 +135,12 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     if verbose:
         print('weights\n', clf3.estimator_weights)
 
-    print('accu (train): {:5.2f}'.format(metric(y_train, y_train_dw)))
-    print('accu (test): {:5.2f}'.format(metric(y_test, y_test_dw)))
+    print('Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_dw)))
+    print('Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_dw)))
 
 
     # Ensembles of Decision Tree
-    print('\nQBoostPlus')
+    print('\nQBoostPlus:')
     clf4 = QboostPlus([clf, clf2, clf3])
     clf4.fit(X_train, y_train, emb_sampler, lmd=lmd, **DW_PARAMS)
     y_train4 = clf4.predict(X_train)
@@ -151,8 +149,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     if verbose:
         print('weights\n', clf4.estimator_weights)
 
-    print('accu (train): {:5.2f}'.format(metric(y_train, y_train4)))
-    print('accu (test): {:5.2f}'.format(metric(y_test, y_test4)))
+    print('Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train4)))
+    print('Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test4)))
 
 
     print()

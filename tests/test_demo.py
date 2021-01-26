@@ -29,8 +29,8 @@ class IntegrationTest(unittest.TestCase):
         output = subprocess.check_output([sys.executable, demo_file, dataset])
         output = output.decode('utf-8') # Bytes to str
 
-        self.assertIn("accu (train)", output)
-        self.assertIn("accu (test)", output)
+        self.assertIn("accuracy on training set", output.lower())
+        self.assertIn("accuracy on test set", output.lower())
     
     def test_wisc(self):
         """Test that demo.py runs "wisc" data set without crashing and produces output."""
