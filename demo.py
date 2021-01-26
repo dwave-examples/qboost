@@ -92,7 +92,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
     X_test = scaler.fit_transform(X_test)
     X_test = normalizer.fit_transform(X_test)
 
-    ## Adaboost
+
+    # ===============================================
     print('\nAdaboost:')
 
     clf = AdaBoostClassifier(n_estimators=NUM_WEAK_CLASSIFIERS)
@@ -107,7 +108,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
 
     print_accuracy(y_train, y_train_pred, y_test, y_test_pred)
 
-    # Ensembles of Decision Tree
+
+    # ===============================================
     print('\nDecision tree:')
 
     clf2 = WeakClassifiers(n_estimators=NUM_WEAK_CLASSIFIERS, max_depth=TREE_DEPTH)
@@ -121,7 +123,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
 
     print_accuracy(y_train, y_train_pred2, y_test, y_test_pred2)
 
-    # Ensembles of Decision Tree
+
+    # ===============================================
     print('\nQBoost:')
 
     DW_PARAMS = {'num_reads': NUM_READS,
@@ -142,7 +145,8 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
 
     print_accuracy(y_train, y_train_dw, y_test, y_test_dw)
 
-    # Ensembles of Decision Tree
+
+    # ===============================================
     print('\nQBoostPlus:')
     clf4 = QboostPlus([clf, clf2, clf3])
     clf4.fit(X_train, y_train, emb_sampler, lmd=lmd, **DW_PARAMS)
