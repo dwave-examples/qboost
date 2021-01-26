@@ -167,8 +167,14 @@ def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
 
 
 if __name__ == '__main__':
+    import argparse
 
-    if '--mnist' in sys.argv:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dataset", choices=["mnist", "wisc"], help="data set to analyze")
+
+    args = parser.parse_args()
+
+    if args.dataset == 'mnist':
 
         print('MNIST handwritten digits data set:')
 
@@ -191,7 +197,7 @@ if __name__ == '__main__':
 
         train_models(X_train, y_train, X_test, y_test, 1.0)
 
-    if '--wisc' in sys.argv:
+    elif args.dataset == 'wisc':
 
         print('Wisonsin breast cancer data set:')
 

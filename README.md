@@ -25,11 +25,16 @@ designed for performance.
 
 ## Usage
 
-A minimal working example using the main interface function can be seen by
-running:
+To run a demonstration using one of two provided sample data sets, run:
 
+```bash
+python demo.py  wisc
 ```
-python demo.py  --wisc --mnist
+
+Or:
+
+```bash
+python demo.py mnist
 ```
 
 ## References
