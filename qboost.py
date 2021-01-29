@@ -18,7 +18,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, AdaBoos
 import numpy as np
 from copy import deepcopy
 
-def weight_penalty(prediction, y, percent = 0.1): 
+def weight_penalty(prediction, y, percent = 0.1):
     """
     For Regression we have to introduce a metric to penalize differences of the prediction from the label y.
     Percent gives the maximum deviation of the prediction from the label that is not penalized.
@@ -27,7 +27,7 @@ def weight_penalty(prediction, y, percent = 0.1):
     min_ = diff.min()
     max_ = diff.max()
     norm = (diff-min_)/(max_-min_)
-    norm = 1.0*(norm  < percent)  
+    norm = 1.0*(norm  < percent)
     return norm
 
 class WeakClassifiers(object):
@@ -132,7 +132,7 @@ class QBoostClassifier(WeakClassifiers):
                 Q[(i, j)] = qij[i, j]
 
         # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, **kwargs)
+        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
         samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
 
         # take the optimal solution as estimator weights
@@ -262,7 +262,7 @@ class QBoostRegressor(WeakRegressor):
 
         self.Qu = Q
         # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, **kwargs)
+        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
         samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
 
         # take the optimal solution as estimator weights
@@ -314,7 +314,7 @@ class QboostPlus(object):
                 Q[(i, j)] = qij[i, j]
 
         # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, **kwargs)
+        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
         samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
 
         # take the optimal solution as estimator weights
@@ -366,7 +366,7 @@ class QboostPlusRegression(object):
                 Q[(i, j)] = qij[i, j]
 
         # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, **kwargs)
+        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
         samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
 
         # take the optimal solution as estimator weights
@@ -389,4 +389,3 @@ class QboostPlusRegression(object):
             y = y
 
         return y
-
