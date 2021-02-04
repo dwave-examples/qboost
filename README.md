@@ -2,13 +2,13 @@
   https://circleci.com/gh/dwave-examples/qboost.svg?style=svg)](
   https://circleci.com/gh/dwave-examples/qboost)
 
-# Qboost
+# QBoost
 
 The D-Wave quantum computer has been widely studied as a discrete optimization
 engine that accepts any problem formulated as quadratic unconstrained binary
 optimization (QUBO). In 2008, Google and D-Wave published a paper, [Training a
 Binary Classifier with the Quantum Adiabatic
-Algorithm](https://arxiv.org/pdf/0811.0416.pdf), which describes how the Qboost
+Algorithm](https://arxiv.org/pdf/0811.0416.pdf), which describes how the QBoost
 ensemble method makes binary classification amenable to quantum computing: the
 problem is formulated as a thresholded linear superposition of a set of weak
 classifiers and the D-Wave quantum computer is used to optimize the weights in a
@@ -16,7 +16,7 @@ learning process that strives to minimize the training error and number of weak
 classifiers
 
 This code demonstrates the use of the D-Wave system to solve a binary
-classification problem using the Qboost algorithm.
+classification problem using the QBoost algorithm.
 
 ## Disclaimer
 
@@ -25,11 +25,16 @@ designed for performance.
 
 ## Usage
 
-A minimal working example using the main interface function can be seen by
-running:
+To run a demonstration using one of two provided sample data sets, run:
 
+```bash
+python demo.py  wisc
 ```
-python demo.py  --wisc --mnist
+
+Or:
+
+```bash
+python demo.py mnist
 ```
 
 ## References

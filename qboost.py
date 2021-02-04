@@ -18,10 +18,21 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, AdaBoos
 import numpy as np
 from copy import deepcopy
 
-def weight_penalty(prediction, y, percent = 0.1):
-    """
-    For Regression we have to introduce a metric to penalize differences of the prediction from the label y.
-    Percent gives the maximum deviation of the prediction from the label that is not penalized.
+
+def weight_penalty(prediction, y, percent = 0.1): 
+    """Compute normalized penalty values for regression predictions.
+    
+    For regression we have to introduce a metric to penalize
+    differences of the prediction from the label y.
+
+    Args:
+        prediction (array):
+            Array of regression predictions.
+        y (array):
+            Array of training values.
+        percent (float):
+            Maximum deviation of the prediction from the label that is
+            not penalized.
     """
     diff = np.abs(prediction-y)
     min_ = diff.min()
@@ -30,9 +41,10 @@ def weight_penalty(prediction, y, percent = 0.1):
     norm = 1.0*(norm  < percent)
     return norm
 
+
 class WeakClassifiers(object):
     """
-    Weak Classifiers based on DecisionTree
+    Collection of weak decision-tree classifiers and boosting using AdaBoost.
     """
 
     def __init__(self, n_estimators=50, max_depth=3):
@@ -48,11 +60,13 @@ class WeakClassifiers(object):
                             for _ in range(self.n_estimators)]
 
     def fit(self, X, y):
-        """
-        fit estimators
-        :param X:
-        :param y:
-        :return:
+        """Fit estimators.
+
+        Args:
+            X (array):
+                2D array of features.
+            y (array):
+                1D array of labels.
         """
 
         self.estimator_weights = np.zeros(self.n_estimators)
@@ -70,10 +84,14 @@ class WeakClassifiers(object):
             self.estimator_weights[i] = w
 
     def predict(self, X):
-        """
-        predict label of X
-        :param X:
-        :return:
+        """Predict labels of given feature vectors.
+
+        Args:
+            X (array):
+                2D array of features.
+
+        Returns:
+            array
         """
 
         if not hasattr(self, 'estimator_weights'):
@@ -100,7 +118,7 @@ class WeakClassifiers(object):
 
 class QBoostClassifier(WeakClassifiers):
     """
-    Qboost Classifier
+    QBoost classifier based on collection of weak decision-tree classifiers.
     """
     def __init__(self, n_estimators=50, max_depth=3):
         super(QBoostClassifier, self).__init__(n_estimators=n_estimators,
@@ -150,7 +168,7 @@ class QBoostClassifier(WeakClassifiers):
 
 class WeakRegressor(object):
     """
-    Weak Regressor based on DecisionTreeRegressor
+    Collection of weak decision-tree regressors and boosting using AdaBoost.
     """
 
     def __init__(self, n_estimators=50, max_depth=3, DT = True, Ada = False, ):
@@ -168,11 +186,13 @@ class WeakRegressor(object):
 #                            for _ in range(self.n_estimators)]
 
     def fit(self, X, y):
-        """
-        fit estimators
-        :param X:
-        :param y:
-        :return:
+        """Fit estimators.
+
+        Args:
+            X (array):
+                2D array of features.
+            y (array):
+                1D array of values.
         """
 
         self.estimator_weights = np.zeros(self.n_estimators) #initialize all estimator weights to zero
@@ -193,10 +213,14 @@ class WeakRegressor(object):
             self.estimator_weights[i] = w
 
     def predict(self, X):
-        """
-        predict label of X
-        :param X:
-        :return:
+        """Predict values of given feature vectors.
+
+        Args:
+            X (array):
+                2D array of features.
+
+        Returns:
+            array
         """
 
         if not hasattr(self, 'estimator_weights'):
@@ -223,7 +247,7 @@ class WeakRegressor(object):
 
 class QBoostRegressor(WeakRegressor):
     """
-    Qboost Regressor
+    QBoost regressor based on collection of weak decision-tree regressors.
     """
     def __init__(self, n_estimators=50, max_depth=3):
         super(QBoostRegressor, self).__init__(n_estimators=n_estimators,
@@ -281,10 +305,9 @@ class QBoostRegressor(WeakRegressor):
         return y
 
 
-class QboostPlus(object):
+class QBoostPlus(object):
     """
-    Only for Classifiers
-    Quantum boost existing (weak) classifiers
+    Quantum boost existing (weak) classifiers.
     """
 
     def __init__(self, weak_classifier_list):
@@ -334,9 +357,10 @@ class QboostPlus(object):
 
         return y
 
-class QboostPlusRegression(object):
+
+class QBoostPlusRegression(object):
     """
-    Quantum boost existing (weak) regressors
+    Quantum boost existing (weak) regressors.
     """
 
     def __init__(self, weak_Regressor_list):

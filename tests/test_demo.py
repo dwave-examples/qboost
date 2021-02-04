@@ -21,29 +21,21 @@ import subprocess
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-class TestDemo(unittest.TestCase):
-    def test_smoke(self):
-        """demo.py runs without crashing"""
+class IntegrationTest(unittest.TestCase):
+    def _test_data_set(self, dataset):
+        """Utility routine to run demo.py on given data set and check that it produces output."""
 
         demo_file = os.path.join(project_dir, 'demo.py')
-        subprocess.check_output([sys.executable,
-                                 demo_file, "--mnist", "--wisc"])
+        output = subprocess.check_output([sys.executable, demo_file, dataset])
+        output = output.decode('utf-8') # Bytes to str
 
-    def test_qboost(self):
-        """demo.py runs and generates valid output"""
-
-        demo_file = os.path.join(project_dir, 'demo.py')
-        output = subprocess.check_output([sys.executable,
-                                          demo_file, "--wisc", "--mnist"])
-        output = str(output).upper()
-        if os.getenv('DEBUG_OUTPUT'):
-            print("Example output \n" + output)
-
-        with self.subTest(msg="Verify if output contains 'accu (train):' \n"):
-            self.assertIn("accu (train):".upper(), output)
-        with self.subTest(msg="Verify if output contains 'DecisionTree' \n"):
-            self.assertIn("DecisionTree".upper(), output)
-        with self.subTest(msg="Verify if error string contains in output \n"):
-            self.assertNotIn("ERROR", output)
-        with self.subTest(msg="Verify if warning string contains in output \n"):
-            self.assertNotIn("WARNING", output)
+        self.assertIn("accuracy on training set", output.lower())
+        self.assertIn("accuracy on test set", output.lower())
+    
+    def test_wisc(self):
+        """Test that demo.py runs "wisc" data set without crashing and produces output."""
+        self._test_data_set("wisc")
+        
+    def test_mnist(self):
+        """Test that demo.py runs "mnist" data set without crashing and produces output."""
+        self._test_data_set("mnist")

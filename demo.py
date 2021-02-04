@@ -26,7 +26,7 @@ from sklearn.impute import SimpleImputer
 from dwave.system.samplers import DWaveSampler
 from dwave.system.composites import EmbeddingComposite
 
-from qboost import WeakClassifiers, QBoostClassifier, QboostPlus
+from qboost import WeakClassifiers, QBoostClassifier, QBoostPlus
 
 
 def metric(y, y_pred):
@@ -34,16 +34,30 @@ def metric(y, y_pred):
     return metrics.accuracy_score(y, y_pred)
 
 
-def train_model(X_train, y_train, X_test, y_test, lmd):
-    """
-    Train qboost model
+def print_accuracy(y_train, y_train_pred, y_test, y_test_pred):
+    """Print information about accuracy."""
 
-    :param X_train: train input
-    :param y_train: train label
-    :param X_test: test input
-    :param y_test: test label
-    :param lmd: lmbda to control regularization term
-    :return:
+    print('    Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_pred)))
+    print('    Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_pred)))
+
+
+def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
+    """
+    Train a series of 4 boosted classification models.
+    
+    Args:
+        X_train (array):
+            2D array of features for training.
+        y_train (array):
+            1D array of labels for training.
+        X_test (array):
+            2D array of features for testing.
+        y_test (array):
+            1D array of labels for testing.
+        lam (float):
+            lambda parameter to control regularization term.
+        verbose (bool):
+            If True, print weak classifier weights.
     """
     NUM_READS = 3000
     NUM_WEAK_CLASSIFIERS = 35
@@ -57,9 +71,9 @@ def train_model(X_train, y_train, X_test, y_test, lmd):
     N_train = len(X_train)
     N_test = len(X_test)
 
-    print("\n======================================")
-    print("Train#: %d, Test: %d" %(N_train, N_test))
-    print('Num weak classifiers:', NUM_WEAK_CLASSIFIERS)
+    print('Size of training set:', N_train)
+    print('Size of test set:    ', N_test)
+    print('Number of weak classifiers:', NUM_WEAK_CLASSIFIERS)
     print('Tree depth:', TREE_DEPTH)
 
 
@@ -78,39 +92,40 @@ def train_model(X_train, y_train, X_test, y_test, lmd):
     X_test = scaler.fit_transform(X_test)
     X_test = normalizer.fit_transform(X_test)
 
-    ## Adaboost
-    print('\nAdaboost')
+
+    # ===============================================
+    print('\nAdaboost:')
 
     clf = AdaBoostClassifier(n_estimators=NUM_WEAK_CLASSIFIERS)
 
     # scores = cross_val_score(clf, X, y, cv=5, scoring='accuracy')
-    print('fitting...')
     clf.fit(X_train, y_train)
 
     hypotheses_ada = clf.estimators_
     # clf.estimator_weights_ = np.random.uniform(0,1,size=NUM_WEAK_CLASSIFIERS)
-    print('testing...')
     y_train_pred = clf.predict(X_train)
     y_test_pred = clf.predict(X_test)
 
-    print('accu (train): %5.2f'%(metric(y_train, y_train_pred)))
-    print('accu (test): %5.2f'%(metric(y_test, y_test_pred)))
+    print_accuracy(y_train, y_train_pred, y_test, y_test_pred)
 
-    # Ensembles of Decision Tree
-    print('\nDecision tree')
+
+    # ===============================================
+    print('\nDecision tree:')
 
     clf2 = WeakClassifiers(n_estimators=NUM_WEAK_CLASSIFIERS, max_depth=TREE_DEPTH)
     clf2.fit(X_train, y_train)
 
     y_train_pred2 = clf2.predict(X_train)
     y_test_pred2 = clf2.predict(X_test)
-    print(clf2.estimator_weights)
 
-    print('accu (train): %5.2f' % (metric(y_train, y_train_pred2)))
-    print('accu (test): %5.2f' % (metric(y_test, y_test_pred2)))
+    if verbose:
+        print('weights:\n', clf2.estimator_weights)
 
-    # Ensembles of Decision Tree
-    print('\nQBoost')
+    print_accuracy(y_train, y_train_pred2, y_test, y_test_pred2)
+
+
+    # ===============================================
+    print('\nQBoost:')
 
     DW_PARAMS = {'num_reads': NUM_READS,
                  'auto_scale': True,
@@ -125,48 +140,48 @@ def train_model(X_train, y_train, X_test, y_test, lmd):
     y_train_dw = clf3.predict(X_train)
     y_test_dw = clf3.predict(X_test)
 
-    print(clf3.estimator_weights)
+    if verbose:
+        print('weights\n', clf3.estimator_weights)
 
-    print('accu (train): %5.2f' % (metric(y_train, y_train_dw)))
-    print('accu (test): %5.2f' % (metric(y_test, y_test_dw)))
+    print_accuracy(y_train, y_train_dw, y_test, y_test_dw)
 
 
-    # Ensembles of Decision Tree
-    print('\nQBoostPlus')
-    clf4 = QboostPlus([clf, clf2, clf3])
+    # ===============================================
+    print('\nQBoostPlus:')
+    clf4 = QBoostPlus([clf, clf2, clf3])
     clf4.fit(X_train, y_train, emb_sampler, lmd=lmd, **DW_PARAMS)
     y_train4 = clf4.predict(X_train)
     y_test4 = clf4.predict(X_test)
-    print(clf4.estimator_weights)
 
-    print('accu (train): %5.2f' % (metric(y_train, y_train4)))
-    print('accu (test): %5.2f' % (metric(y_test, y_test4)))
+    if verbose:
+        print('weights\n', clf4.estimator_weights)
+
+    print_accuracy(y_train, y_train4, y_test, y_test4)
 
 
-    print("=============================================")
-    print("Method \t Adaboost \t DecisionTree \t Qboost \t QboostIt")
-    print("Train\t %5.2f \t\t %5.2f \t\t\t %5.2f \t\t %5.2f"% (metric(y_train, y_train_pred),
-                                                               metric(y_train, y_train_pred2),
-                                                               metric(y_train, y_train_dw),
-                                                               metric(y_train, y_train4)))
-    print("Test\t %5.2f \t\t %5.2f \t\t\t %5.2f \t\t %5.2f"% (metric(y_test, y_test_pred),
-                                                              metric(y_test,y_test_pred2),
-                                                              metric(y_test, y_test_dw),
-                                                              metric(y_test, y_test4)))
-    print("=============================================")
-
-    # plt.subplot(211)
-    # plt.bar(range(len(y_test)), y_test)
-    # plt.subplot(212)
-    # plt.bar(range(len(y_test)), y_test_dw)
-    # plt.show()
-
-    return
+    print()
+    print('=' * 28)
+    print("{:14}{:7}{:7}".format("Method", "Train", "Test"))
+    print('-' * 28)
+    for name, _y_train_pred, _y_test_pred in zip(["Adaboost", "DecisionTree", "QBoost", "QBoostIt"],
+                                                 [y_train_pred, y_train_pred2, y_train_dw, y_train4],
+                                                 [y_test_pred, y_test_pred2, y_test_dw, y_test4]):
+        print("{:14}{:<7.2f}{:<7.2f}".format(name, metric(y_train, _y_train_pred), metric(y_test, _y_test_pred)))
+    print('=' * 28)
 
 
 if __name__ == '__main__':
+    import argparse
 
-    if '--mnist' in sys.argv:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dataset", choices=["mnist", "wisc"], help="data set to analyze")
+    parser.add_argument("--verbose", action="store_true", help="display additional output")
+
+    args = parser.parse_args()
+
+    if args.dataset == 'mnist':
+
+        print('MNIST handwritten digits data set:')
 
         mnist = fetch_openml('mnist_784', version=1)
 
@@ -185,9 +200,11 @@ if __name__ == '__main__':
         y_train = 2*(mnist['target'][idx_train] <= '4') - 1
         y_test = 2*(mnist['target'][idx_test] <= '4') - 1
 
-        clfs = train_model(X_train, y_train, X_test, y_test, 1.0)
+        train_models(X_train, y_train, X_test, y_test, 1.0, verbose=args.verbose)
 
-    if '--wisc' in sys.argv:
+    elif args.dataset == 'wisc':
+
+        print('Wisconsin breast cancer data set:')
 
         wisc = load_breast_cancer()
 
@@ -204,4 +221,4 @@ if __name__ == '__main__':
         y_train = 2 * wisc.target[idx_train] - 1  # binary -> spin
         y_test = 2 * wisc.target[idx_test] - 1
 
-        clfs = train_model(X_train, y_train, X_test, y_test, 1.0)
+        train_models(X_train, y_train, X_test, y_test, 1.0, verbose=args.verbose)
