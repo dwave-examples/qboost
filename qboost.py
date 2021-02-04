@@ -38,7 +38,7 @@ def weight_penalty(prediction, y, percent = 0.1):
     min_ = diff.min()
     max_ = diff.max()
     norm = (diff-min_)/(max_-min_)
-    norm = 1.0*(norm  < percent)  
+    norm = 1.0*(norm  < percent)
     return norm
 
 
@@ -150,7 +150,7 @@ class QBoostClassifier(WeakClassifiers):
                 Q[(i, j)] = qij[i, j]
 
         # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, **kwargs)
+        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
         samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
 
         # take the optimal solution as estimator weights
@@ -286,7 +286,7 @@ class QBoostRegressor(WeakRegressor):
 
         self.Qu = Q
         # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, **kwargs)
+        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
         samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
 
         # take the optimal solution as estimator weights
@@ -337,7 +337,7 @@ class QBoostPlus(object):
                 Q[(i, j)] = qij[i, j]
 
         # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, **kwargs)
+        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
         samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
 
         # take the optimal solution as estimator weights
@@ -390,7 +390,7 @@ class QBoostPlusRegression(object):
                 Q[(i, j)] = qij[i, j]
 
         # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, **kwargs)
+        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
         samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
 
         # take the optimal solution as estimator weights
@@ -413,4 +413,3 @@ class QBoostPlusRegression(object):
             y = y
 
         return y
-
