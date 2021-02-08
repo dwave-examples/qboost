@@ -18,7 +18,7 @@ import unittest
 
 from sklearn.datasets import make_classification
 
-from qboost import DecisionStumpClassifier, AllStumpsClassifier
+from qboost import DecisionStumpClassifier, AllStumpsClassifier, QBoostClassifier
 
 
 class DecisionStumpTest(unittest.TestCase):
@@ -31,6 +31,7 @@ class DecisionStumpTest(unittest.TestCase):
         # Basic sanity check:
         self.assertEqual(len(stump.predict(X)), len(X))
 
+
 class EnsembleTest(unittest.TestCase):
     def test_ensemble(self):
 
@@ -39,6 +40,15 @@ class EnsembleTest(unittest.TestCase):
         clf = AllStumpsClassifier(X, y)
 
         self.assertGreaterEqual(clf.score(X, y), 0)
+
+
+class QBoostTest(unittest.TestCase):
+    def test_qboost(self):
         
+        X, y = make_classification(n_features=5)
+
+        clf = QBoostClassifier(X, y, 0.0)
+
+        self.assertGreaterEqual(clf.score(X, y), 0)
 
 
