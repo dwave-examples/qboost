@@ -14,6 +14,7 @@
 
 import os
 import sys
+import copy
 import unittest
 
 from sklearn.datasets import make_classification
@@ -21,10 +22,17 @@ from sklearn.datasets import make_classification
 from qboost import DecisionStumpClassifier, AllStumpsClassifier, QBoostClassifier
 
 
+def _get_sample_data():
+    X, y = make_classification(n_features=5)
+    # Convert class labels to +/- 1
+    y = y * 2 - 1
+    return X, y
+
+
 class DecisionStumpTest(unittest.TestCase):
     def test_decision_stump(self):
 
-        X, y = make_classification(n_features=5)
+        X, y = _get_sample_data()
 
         stump = DecisionStumpClassifier(X, y, 2)
 
@@ -35,7 +43,7 @@ class DecisionStumpTest(unittest.TestCase):
 class EnsembleTest(unittest.TestCase):
     def test_ensemble(self):
 
-        X, y = make_classification(n_features=5)
+        X, y = _get_sample_data()
 
         clf = AllStumpsClassifier(X, y)
 
@@ -43,12 +51,28 @@ class EnsembleTest(unittest.TestCase):
 
 
 class QBoostTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.X, cls.y = _get_sample_data()
+        cls.clf = QBoostClassifier(cls.X, cls.y, 0.0)
+
     def test_qboost(self):
+        self.assertGreaterEqual(self.clf.score(self.X, self.y), 0)
+
+    def test_energy(self):
+        """Sanity check that the BQM energy matches the squared error computed directly.
+
+        Note this only works with lambda=0, and we also need to reset the offset to 0.
+        """
+
+        # BQM formulation is based on squared error with no offset, so
+        # we need to reset the offset back to zero prior to computing
+        # the squared error.
+
+        # Create a shallow copy prior to modify the offset so as not
+        # to interfere with other test cases using this same instance.
+        clf = copy.copy(self.clf)
+        clf.offset = 0.0
         
-        X, y = make_classification(n_features=5)
-
-        clf = QBoostClassifier(X, y, 0.0)
-
-        self.assertGreaterEqual(clf.score(X, y), 0)
-
-
+        squared_error = clf.squared_error(self.X, self.y)
+        self.assertAlmostEqual(clf.energy * len(self.y), squared_error)
