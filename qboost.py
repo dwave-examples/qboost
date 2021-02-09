@@ -146,6 +146,8 @@ class EnsembleClassifier:
 class AllStumpsClassifier(EnsembleClassifier):
     """Ensemble classifier with one decision stump for each feature."""
     def __init__(self, X, y):
+        if not all(np.isin(y, [-1, 1])):
+            raise ValueError("Class labels should be +/- 1")
 
         num_featuers = np.size(X, 1)
         classifiers = [DecisionStumpClassifier(X, y, i) for i in range(num_featuers)]
@@ -235,6 +237,9 @@ class QBoostClassifier(EnsembleClassifier):
                 if True, only retain the nonzero weighted classifiers.
 
         """
+        if not all(np.isin(y, [-1, 1])):
+            raise ValueError("Class labels should be +/- 1")
+
         num_features = np.size(X, 1)
 
         if weak_clf_scale is None:
