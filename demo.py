@@ -14,7 +14,9 @@
 
 
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_digits
 
 from qboost import qboost_lambda_sweep
 from datasets import make_blob_data, get_handwritten_digits_data
@@ -36,6 +38,7 @@ if __name__ == '__main__':
     sp_digits = subparsers.add_parser('digits', help='handwritten digits data set')
     sp_digits.add_argument('--digit1', type=int, default=0, choices=range(10), help='first digit to include (default: %(default)s)')
     sp_digits.add_argument('--digit2', type=int, default=1, choices=range(10), help='second digit to include (default: %(default)s)')
+    sp_digits.add_argument('--plot-digits', action='store_true', help='plot a random sample of each digit')
 
     args = parser.parse_args()
 
@@ -81,3 +84,20 @@ if __name__ == '__main__':
         print('number of selected features:', len(qboost.get_selected_features()))
 
         print('score on test set:', qboost.score(X_test, y_test))
+
+        if args.plot_digits:
+            digits = load_digits()
+
+            images1 = [image for image,target in zip(digits.images, digits.target) if target == args.digit1]
+            images2 = [image for image,target in zip(digits.images, digits.target) if target == args.digit2]
+            
+            f, axes = plt.subplots(1, 2)
+
+            # Select a random image from each set to show:
+            i1 = np.random.choice(len(images1))
+            i2 = np.random.choice(len(images2))
+            for ax, image in zip(axes, (images1[i1], images2[i2])):
+                ax.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
+
+            plt.show()
+
