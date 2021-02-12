@@ -15,22 +15,14 @@
 import copy
 import unittest
 
-from sklearn.datasets import make_classification
-
 from qboost import DecisionStumpClassifier, AllStumpsClassifier, QBoostClassifier
-
-
-def _get_sample_data():
-    X, y = make_classification(n_features=5)
-    # Convert class labels to +/- 1
-    y = y * 2 - 1
-    return X, y
+from datasets import make_blob_data
 
 
 class DecisionStumpTest(unittest.TestCase):
     def test_decision_stump(self):
 
-        X, y = _get_sample_data()
+        X, y = make_blob_data()
 
         stump = DecisionStumpClassifier(X, y, 2)
 
@@ -41,7 +33,7 @@ class DecisionStumpTest(unittest.TestCase):
 class EnsembleTest(unittest.TestCase):
     def test_ensemble(self):
 
-        X, y = _get_sample_data()
+        X, y = make_blob_data()
 
         clf = AllStumpsClassifier(X, y)
 
@@ -51,7 +43,7 @@ class EnsembleTest(unittest.TestCase):
 class QBoostTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.X, cls.y = _get_sample_data()
+        cls.X, cls.y = make_blob_data()
         cls.clf = QBoostClassifier(cls.X, cls.y, 0.0)
 
     def test_qboost(self):
