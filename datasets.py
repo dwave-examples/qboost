@@ -1,6 +1,7 @@
 import numpy as np
 
 from sklearn.datasets import make_blobs
+from sklearn.datasets import load_digits
 
 
 def make_blob_data(n_samples=100, n_features=5, n_informative=2, delta=1):
@@ -41,3 +42,37 @@ def make_blob_data(n_samples=100, n_features=5, n_informative=2, delta=1):
 
     return X, y
 
+
+def get_handwritten_digits_data(class1, class2):
+    """Retrieve handwritten digits data for two of the classes (digits).
+
+    Args:
+        class1 (int):
+           First class label (digit) to include.  Between 0 and 9.
+        class2 (int):
+           Second class label (digit) to include.  Between 0 and 9.
+
+    Returns:
+        X (array of shape (n_samples, n_features))
+            Feature vectors.
+        y (array of shape (n_samples,):
+            Class labels with values of +/- 1.
+    """
+    
+    Xall, yall = load_digits(return_X_y=True)
+
+    def extract_two_classes(c1, c2):
+        idx = (yall == c1) | (yall == c2)
+
+        X = Xall[idx,:]
+        y = yall[idx]
+
+        vals = np.unique(y)
+        y[y == vals[0]] = -1
+        y[y == vals[1]] = 1
+
+        return X, y
+
+    X, y = extract_two_classes(class1, class2)
+
+    return X, y
