@@ -272,7 +272,7 @@ class QBoostClassifier(EnsembleClassifier):
         self.fit_offset(X)
 
 
-def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, **kwargs):
+def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kwargs):
     """Run QBoost using a series of lambda values and check accuracy against a validation set.
 
     Args:
@@ -284,6 +284,8 @@ def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, **kwargs):
             Array of values for regularization parameter, labmda.
         val_fraction (float):
             Fraction of given data to set aside for validation.
+        verbose (bool):
+            Print out diagnostic information to screen.
         kwargs:
             Passed to QBoost.__init__
     
@@ -302,6 +304,8 @@ def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, **kwargs):
     for lam in lambda_vals:
         qb = QBoostClassifier(X_train, y_train, lam, **kwargs)
         score = qb.score(X_val, y_val)
+        if verbose:
+            print('lambda, n_features, score:', lam, len(qb.get_selected_features()), score)
         if score > best_score:
             best_score = score
             best_clf = qb
