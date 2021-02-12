@@ -36,21 +36,22 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    n_samples = args.num_samples
-    n_features = args.num_features
-    n_informative = args.num_informative
+    if args.dataset == 'blobs':
+        n_samples = args.num_samples
+        n_features = args.num_features
+        n_informative = args.num_informative
 
-    X, y = make_blob_data(n_samples=n_samples, n_features=n_features, n_informative=n_informative)
+        X, y = make_blob_data(n_samples=n_samples, n_features=n_features, n_informative=n_informative)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
 
-    
-    normalized_lambdas = np.linspace(0.0, 0.5, 10)
-    lambdas = normalized_lambdas / n_features
-    qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
 
-    print('best lambda:', lam)
-    print('informative featuers:', list(range(n_informative)))
-    print('   selected features:', qboost.get_selected_features())
+        normalized_lambdas = np.linspace(0.0, 0.5, 10)
+        lambdas = normalized_lambdas / n_features
+        qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
 
-    print('score on test set:', qboost.score(X_test, y_test))
+        print('best lambda:', lam)
+        print('informative features:', list(range(n_informative)))
+        print('   selected features:', qboost.get_selected_features())
+
+        print('score on test set:', qboost.score(X_test, y_test))
