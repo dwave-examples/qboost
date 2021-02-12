@@ -14,6 +14,7 @@
 
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 import dimod
@@ -269,3 +270,43 @@ class QBoostClassifier(EnsembleClassifier):
 
         super().__init__(weak_classifiers, weights, weak_clf_scale)
         self.fit_offset(X)
+
+
+def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, **kwargs):
+    """Run QBoost using a series of lambda values and check accuracy against a validation set.
+
+    Args:
+        X (array):
+            2D array of feature vectors.
+        y (array):
+            1D array of class labels (+/- 1).
+        lambda_vals (array):
+            Array of values for regularization parameter, labmda.
+        val_fraction (float):
+            Fraction of given data to set aside for validation.
+        kwargs:
+            Passed to QBoost.__init__
+    
+    Returns:
+        QBoostClassifier:
+            QBoost instance with best validation score.
+        lambda:
+            Lambda value corresopnding to the best validation score.
+    """
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=val_fraction)
+
+    best_score = -1
+    best_lambda = None
+    best_clf = None
+
+    for lam in lambda_vals:
+        qb = QBoostClassifier(X_train, y_train, lam, **kwargs)
+        score = qb.score(X_val, y_val)
+        if score > best_score:
+            best_score = score
+            best_clf = qb
+            best_lambda = lam
+
+    return best_clf, lam
+
+
