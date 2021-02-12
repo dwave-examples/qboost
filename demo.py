@@ -24,21 +24,29 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description="Run QBoost example")
+    parser.add_argument('--num-samples', type=int, default=2000, help='number of samples (default: %(default)s)')
+    parser.add_argument('--num-features', type=int, default=10, help='number of features (default: %(default)s)')
+    parser.add_argument('--num-informative', type=int, default=2, help='number of informative features (default: %(default)s)')
+    parser.add_argument('--verbose', action='store_true')
+
+    args = parser.parse_args()
 
 
-    n_samples = 2000
-    n_features = 10
+    n_samples = args.num_samples
+    n_features = args.num_features
+    n_informative = args.num_informative
 
-    X, y = make_blob_data(n_samples=n_samples, n_features=n_features)
+    X, y = make_blob_data(n_samples=n_samples, n_features=n_features, n_informative=n_informative)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
 
     
-    normalized_lambdas = np.linspace(0.0, 0.7, 11)
+    normalized_lambdas = np.linspace(0.0, 0.5, 10)
     lambdas = normalized_lambdas / n_features
-    qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas)
+    qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
 
     print('best lambda:', lam)
-    print('selected features:', qboost.get_selected_features())
+    print('informative featuers:', list(range(n_informative)))
+    print('   selected features:', qboost.get_selected_features())
 
     print('score on test set:', qboost.score(X_test, y_test))
