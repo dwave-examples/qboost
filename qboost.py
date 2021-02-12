@@ -114,12 +114,12 @@ class EnsembleClassifier:
         """Compute ensemble prediction of class label"""
         preds = self.predict(X)
 
-        # Make sure we don't have any 0 preds.  Currently trying to
-        # avoid these by using a small offset.  Otherwise, predictions
-        # that equal 0, which occur when classifiers balance each
-        # other out, can be problematic for scoring because they do
-        # not match either class.
-        assert all(preds != 0)
+        # Add a small perturbation to any predictions that are exactly
+        # 0, because these will not count towards either class when
+        # passed through the sign function.  Such zero predictions can
+        # happen when the weak classifiers exactly balance each other
+        # out.
+        preds[preds==0] = 1e-9
 
         return np.sign(preds)
 
