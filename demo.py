@@ -24,10 +24,14 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description="Run QBoost example")
-    parser.add_argument('--num-samples', type=int, default=2000, help='number of samples (default: %(default)s)')
-    parser.add_argument('--num-features', type=int, default=10, help='number of features (default: %(default)s)')
-    parser.add_argument('--num-informative', type=int, default=2, help='number of informative features (default: %(default)s)')
     parser.add_argument('--verbose', action='store_true')
+
+    subparsers = parser.add_subparsers(title='dataset', description='dataset to use', dest='dataset', required=True)
+    sp_blobs = subparsers.add_parser('blobs', help='blobs data set')
+    
+    sp_blobs.add_argument('--num-samples', type=int, default=2000, help='number of samples (default: %(default)s)')
+    sp_blobs.add_argument('--num-features', type=int, default=10, help='number of features (default: %(default)s)')
+    sp_blobs.add_argument('--num-informative', type=int, default=2, help='number of informative features (default: %(default)s)')
 
     args = parser.parse_args()
 
