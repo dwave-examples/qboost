@@ -14,6 +14,7 @@
 
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 
 import dimod
 import neal
@@ -108,24 +109,24 @@ class EnsembleClassifier:
         preds = np.dot(H, self.w)
         return preds - self.offset
 
-    def score(self, X, y):
-        if sum(self.w) == 0:
-            # Avoid difficulties that occur with handling this below
-            return 0.0
-
+    def predict_class(self, X):
+        """Compute ensemble prediction of class label"""
         preds = self.predict(X)
-        # If > is used instead of >=, then weak classifiers whose
-        # votes exactly balance out end up not counting as a
-        # prediction for either class.  This can occur when using
-        # binary weights with an even number of classifiers.
 
         # Make sure we don't have any 0 preds.  Currently trying to
         # avoid these by using a small offset.  Otherwise, predictions
         # that equal 0, which occur when classifiers balance each
-        # other out, can be problematic for scoring.
+        # other out, can be problematic for scoring because they do
+        # not match either class.
         assert all(preds != 0)
 
-        return np.mean( np.sign(preds)*y > 0 )
+        return np.sign(preds)
+
+    def score(self, X, y):
+        if sum(self.w) == 0:
+            # Avoid difficulties that occur with handling this below
+            return 0.0
+        return accuracy_score(y, self.predict_class(X))
 
     def squared_error(self, X, y):
         p = self.predict(X)
