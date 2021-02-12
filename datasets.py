@@ -24,6 +24,8 @@ def make_blob_data(n_samples=100, n_features=5, n_informative=2, delta=1):
         y (array of shape (n_samples,):
             Class labels with values of +/- 1.
     """
+    if n_informative > n_features:
+        raise ValueError("n_informative must be less than or equal to n_features")
 
     # Set up the centers so that only n_informative features have a
     # different mean for the two classes.
