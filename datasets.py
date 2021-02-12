@@ -29,7 +29,7 @@ def make_blob_data(n_samples=100, n_features=5, n_informative=2, delta=1):
     # different mean for the two classes.
     class0_centers = np.zeros(n_features)
     class1_centers = np.zeros(n_features)
-    class1_centers[:2] = delta
+    class1_centers[:n_informative] = delta
     
     centers = np.vstack((class0_centers, class1_centers))
     X, y = make_blobs(n_samples=n_samples, n_features=n_features, centers=centers)
