@@ -143,6 +143,10 @@ class EnsembleClassifier:
         # mean(y) here to account for unbalanced classes.
         self.offset = np.mean(self.predict(X))
 
+    def get_selected_features(self):
+        """Return list of features corresponding to the selected weak classifiers."""
+        return [clf.i for clf,w in zip(self.classifiers, self.w) if w > 0]
+
 
 class AllStumpsClassifier(EnsembleClassifier):
     """Ensemble classifier with one decision stump for each feature."""
