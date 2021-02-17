@@ -25,7 +25,7 @@ from datasets import make_blob_data, get_handwritten_digits_data
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run QBoost example")
+    parser = argparse.ArgumentParser(description="Run QBoost example", epilog="Information about additional options that are specific to the data set can be obtained using either 'demo.py blobs -h' or 'demo.py digits -h'.")
     parser.add_argument('--verbose', action='store_true')
 
     subparsers = parser.add_subparsers(title='dataset', description='dataset to use', dest='dataset', required=True)
