@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
 
-
+        # See Boyda et al. (2017), Eq. (17) regarding normalization
         normalized_lambdas = np.linspace(0.0, 0.5, 10)
         lambdas = normalized_lambdas / n_features
         qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
@@ -76,6 +76,7 @@ if __name__ == '__main__':
         print('Number of training samples:', len(X_train))
         print('Number of test samples:', len(X_test))
 
+        # See Boyda et al. (2017), Eq. (17) regarding normalization
         normalized_lambdas = np.linspace(0.0, 1.75, 10)
         lambdas = normalized_lambdas / n_features
         qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
