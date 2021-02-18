@@ -70,7 +70,7 @@ class QBoostTest(unittest.TestCase):
         clf.offset = 0.0
         
         squared_error = clf.squared_error(self.X, self.y)
-        self.assertAlmostEqual(clf.energy * len(self.y), squared_error)
+        self.assertAlmostEqual(clf.energy * len(self.y), squared_error, 4)
 
 
 class IntegrationTest(unittest.TestCase):

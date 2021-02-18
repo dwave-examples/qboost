@@ -18,7 +18,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 import dimod
-import neal
+from dwave.system import LeapHybridSampler
 
 
 class DecisionStumpClassifier:
@@ -174,7 +174,7 @@ def _build_bqm(H, y, lam):
             Outputs
         lam (float):
             Coefficient that controls strength of regularization term
-            (larger values encourage decreased model compelxity).
+            (larger values encourage decreased model complexity).
     """
     n_samples = np.size(H, 0)
     n_classifiers = np.size(H, 1)
@@ -211,8 +211,8 @@ def _minimize_squared_loss_binary(H, y, lam):
     """Minimize squared loss using binary weight variables."""
     bqm = _build_bqm(H, y, lam)
 
-    sampler = neal.SimulatedAnnealingSampler()
-    results = sampler.sample(bqm)
+    sampler = LeapHybridSampler()
+    results = sampler.sample(bqm, label='Example - QBoost')
     weights = np.array(list(results.first.sample.values()))
     energy = results.first.energy
 
@@ -281,7 +281,7 @@ def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kw
         y (array):
             1D array of class labels (+/- 1).
         lambda_vals (array):
-            Array of values for regularization parameter, labmda.
+            Array of values for regularization parameter, lambda.
         val_fraction (float):
             Fraction of given data to set aside for validation.
         verbose (bool):
@@ -293,7 +293,7 @@ def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kw
         QBoostClassifier:
             QBoost instance with best validation score.
         lambda:
-            Lambda value corresopnding to the best validation score.
+            Lambda value corresponding to the best validation score.
     """
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=val_fraction)
 
