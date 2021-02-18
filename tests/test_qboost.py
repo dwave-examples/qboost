@@ -14,9 +14,14 @@
 
 import copy
 import unittest
+import os
+import sys
+import subprocess
 
 from qboost import DecisionStumpClassifier, AllStumpsClassifier, QBoostClassifier
 from datasets import make_blob_data
+
+example_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class DecisionStumpTest(unittest.TestCase):
@@ -66,3 +71,13 @@ class QBoostTest(unittest.TestCase):
         
         squared_error = clf.squared_error(self.X, self.y)
         self.assertAlmostEqual(clf.energy * len(self.y), squared_error)
+
+
+class IntegrationTest(unittest.TestCase):
+    def test_integration(self):
+        file_path = os.path.join(example_dir, "demo.py")
+
+        output = subprocess.check_output([sys.executable, file_path, 'blobs'])
+        output = output.decode('utf-8') # Bytes to str
+
+        self.assertIn('selected features', output.lower())
