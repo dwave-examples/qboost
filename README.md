@@ -49,7 +49,7 @@ features, the features that are selected by QBoost, and the accuracy of the
 resulting ensemble classifier on the test set.
 
 The values of the number of samples, number of features, and number of
-informative featuers can be controlled using command line arguments, as
+informative features can be controlled using command line arguments, as
 described in the help:
 
 ```bash
@@ -83,6 +83,26 @@ data set:
 python demo.py digits -h
 ```
 
+## Code Overview
+
+Given a set of `N` weak classifiers, the objective is to construct a strong
+classifier by selecting a subset of weak classifiers.  QBoost does this by
+formulating an optimization problem in which the objective is to minimize the
+squared loss between the actual and predicted targets with the strong
+classifier.  A regularization term is also included to penalize complex models
+that include more weak classifiers.  The resulting optimization problem can be
+written as (Boyda):
+
+![Objective](images/objective.png)
+
+where `t` is an index over training instances, `c_i(t)` denote the weak
+classifiers, `y(t)` denote the observed targets, `w_i` are the weights to be
+determined, and lambda is the regularization parameter.  In this demonstration,
+the weights are treated as binary variables that take a value of either 0 or 1.
+The weak classifiers are constructed from a series of single-feature decision
+tree rules, also known as decision stumps.  Following Boyda, the output of each
+weak classifier is scaled to `-1/N` and `+1/N`.
+
 ## Disclaimer
 
 This demo and its code are intended for demonstrative purposes only and are not
@@ -100,7 +120,9 @@ detailed implementation.  These include:
   a more natural definition.
 - This example employs a bit depth of 1, so that the weight associated with each
   classifier is limited to 0 or 1.  It is possible to increase the bit depth,
-  for example as discussed in Neven (2008).
+  for example as discussed in Neven (2008).  Nevertheless, it has been reported
+  that low bit depths can improve performance, particularly on smaller training
+  sets.
 
 ## References
 
