@@ -14,9 +14,13 @@
 
 
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_digits
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    # Not required for demo
+    pass
 
 from qboost import qboost_lambda_sweep
 from datasets import make_blob_data, get_handwritten_digits_data
