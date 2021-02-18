@@ -91,17 +91,17 @@ formulating an optimization problem in which the objective is to minimize the
 squared loss between the actual and predicted targets with the strong
 classifier.  A regularization term is also included to penalize complex models
 that include more weak classifiers.  The resulting optimization problem can be
-written as [4]:
+written as [1]:
 
 ![Objective](images/objective.png)
 
-where `t` is an index over training instances, `c_i(t)` denote the weak
-classifiers, `y(t)` denote the observed targets, `w_i` are the weights to be
-determined, and lambda is the regularization parameter.  In this demonstration,
-the weights are treated as binary variables that take a value of either 0 or 1.
-The weak classifiers are constructed from a series of single-feature decision
-tree rules, also known as decision stumps.  Following Refs. [1,4], the output of
-each weak classifier is scaled to `-1/N` and `+1/N`.
+where `s` is an index over training instances, `i` is an index over features,
+`h_i(x_s)` denote the weak classifiers, `y_s` denote the observed targets, `w_i`
+are the weights to be determined, and lambda is the regularization parameter.
+In this demonstration, the weights are treated as binary variables that take a
+value of either 0 or 1.  The weak classifiers are constructed from a series of
+single-feature decision tree rules, also known as decision stumps.  Following
+Refs. [1,4], the output of each weak classifier is scaled to `-1/N` and `+1/N`.
 
 ## Disclaimer
 
