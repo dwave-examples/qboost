@@ -111,7 +111,7 @@ class EnsembleClassifier:
         return preds - self.offset
 
     def predict_class(self, X):
-        """Compute ensemble prediction of class label"""
+        """Compute ensemble prediction of class label."""
         preds = self.predict(X)
 
         # Add a small perturbation to any predictions that are exactly
@@ -124,12 +124,17 @@ class EnsembleClassifier:
         return np.sign(preds)
 
     def score(self, X, y):
+        """Compute accuracy score on given data."""
         if sum(self.w) == 0:
             # Avoid difficulties that occur with handling this below
             return 0.0
         return accuracy_score(y, self.predict_class(X))
 
     def squared_error(self, X, y):
+        """Compute squared error between predicted and true labels.
+
+        Provided for testing purposes.
+        """
         p = self.predict(X)
         return sum( (p - y)**2 )
 
@@ -157,14 +162,15 @@ class AllStumpsClassifier(EnsembleClassifier):
 
         num_featuers = np.size(X, 1)
         classifiers = [DecisionStumpClassifier(X, y, i) for i in range(num_featuers)]
-        # The scaling is arbitrary in this case and does not affect the predictions.
 
+        # Note: the weak classifier output scaling is arbitrary in
+        # this case and does not affect the predictions.
         super().__init__(classifiers, np.ones(num_featuers), 1/num_featuers)
         self.fit_offset(X)
 
 
 def _build_bqm(H, y, lam):
-    """Build BQM
+    """Build BQM.
 
     Args:
         H (array):
@@ -179,29 +185,29 @@ def _build_bqm(H, y, lam):
     n_samples = np.size(H, 0)
     n_classifiers = np.size(H, 1)
 
-    # This is a factor that conceptually appears in front of the
-    # squared loss term in the objective.  In theory, it does not
-    # affect the problem solution, but it does affect the relative
-    # weighting of the loss and regularization terms, which is
-    # otherwise absorbed into the lambda parameter.
+    # samples_factor is a factor that appears in front of the squared
+    # loss term in the objective.  In theory, it does not affect the
+    # problem solution, but it does affect the relative weighting of
+    # the loss and regularization terms, which is otherwise absorbed
+    # into the lambda parameter.
 
     # Using an average seems to be more intuitive, otherwise, lambda
-    # is sample-size dependent
-    samples_factor = 1.0 / n_samples # To do averaging of loss over samples
+    # is sample-size dependent.
+    samples_factor = 1.0 / n_samples
 
     bqm = dimod.BQM('BINARY')
     bqm.offset = samples_factor * n_samples
 
     for i in range(n_classifiers):
-        # Note: the last part with hi^2 comes from the first term in
-        # Eq. (12) where i=j.
-
+        # Note: the last term with h_i^2 is part of the first term in
+        # Eq. (12) of Neven et al. (2008), where i=j.
         bqm.add_variable(i, lam - 2.0 * samples_factor * np.dot(H[:,i], y) + samples_factor * np.dot(H[:,i], H[:,i]))
 
     for i in range(n_classifiers):
         for j in range(i+1, n_classifiers):
-            # The factor of 2, not in Eq. (12), is added to account
-            # for the double-counting of each pair in the sum
+            # Relative to Eq. (12) from Neven et al. (2008), the
+            # factor of 2 appears here because each term appears twice
+            # in a sum over all i,j.
             bqm.add_interaction(i, j, 2.0 * samples_factor * np.dot(H[:,i], H[:,j]))
 
     return bqm
@@ -226,7 +232,7 @@ class QBoostClassifier(EnsembleClassifier):
     def __init__(self, X, y, lam, weak_clf_scale=None, drop_unused=True):
         """Initialize and fit QBoost classifier.
 
-        X should already include all candidate features (e.g., interactions)
+        X should already include all candidate features (e.g., interactions).
         
         Args:
             X (array):
@@ -234,14 +240,12 @@ class QBoostClassifier(EnsembleClassifier):
             y (array):
                 1D array of class labels (+/- 1).
             lam (float):
-                regularization parameter
+                regularization parameter.
             weak_clf_scale (float or None):
                 scale factor to apply to weak classifier outputs.  If
-                None, scale by 1/num_classifiers as indicated in the Neven
-                papers.
+                None, scale by 1/num_classifiers.
             drop_unused (bool):
                 if True, only retain the nonzero weighted classifiers.
-
         """
         if not all(np.isin(y, [-1, 1])):
             raise ValueError("Class labels should be +/- 1")
@@ -255,8 +259,8 @@ class QBoostClassifier(EnsembleClassifier):
 
         H = _build_H(wclf_candidates, X, weak_clf_scale)
         
-        # For reference, store individual weak classifier scores
-        # Note: we don't check equality h==y here because H might be rescaled
+        # For reference, store individual weak classifier scores.
+        # Note: we don't check equality h==y here because H might be rescaled.
         self.weak_scores = np.array( [np.mean( np.sign(h) * y > 0 ) for h in H.T] )
 
         weights, self.energy = _minimize_squared_loss_binary(H, y, lam)
@@ -287,7 +291,7 @@ def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kw
         verbose (bool):
             Print out diagnostic information to screen.
         kwargs:
-            Passed to QBoost.__init__
+            Passed to QBoost.__init__.
     
     Returns:
         QBoostClassifier:

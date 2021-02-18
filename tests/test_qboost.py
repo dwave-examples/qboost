@@ -64,8 +64,9 @@ class QBoostTest(unittest.TestCase):
         # we need to reset the offset back to zero prior to computing
         # the squared error.
 
-        # Create a shallow copy prior to modify the offset so as not
-        # to interfere with other test cases using this same instance.
+        # Create a shallow copy prior to modifying the offset so as
+        # not to interfere with other test cases using this same
+        # instance.
         clf = copy.copy(self.clf)
         clf.offset = 0.0
         
