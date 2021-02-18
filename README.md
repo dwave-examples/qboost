@@ -10,8 +10,8 @@ predictor.  QBoost is an approach for boosting that involves selecting weak
 classifiers based on minimization of quadratic loss (squared difference between
 the observed and predicted label), so that the resulting optimization problem
 can be formulated as a binary quadratic model and solved on the D-Wave system.
-This approach has been explored previously in the literature by various authors,
-including (Neven, Mott, and Boyda).
+This approach has been explored previously in the literature, for example
+Refs. [1-4].
 
 This example illustrates the application of a QBoost formulation towards two
 illustrative data sets.
@@ -91,7 +91,7 @@ formulating an optimization problem in which the objective is to minimize the
 squared loss between the actual and predicted targets with the strong
 classifier.  A regularization term is also included to penalize complex models
 that include more weak classifiers.  The resulting optimization problem can be
-written as (Boyda):
+written as [4]:
 
 ![Objective](images/objective.png)
 
@@ -100,46 +100,46 @@ classifiers, `y(t)` denote the observed targets, `w_i` are the weights to be
 determined, and lambda is the regularization parameter.  In this demonstration,
 the weights are treated as binary variables that take a value of either 0 or 1.
 The weak classifiers are constructed from a series of single-feature decision
-tree rules, also known as decision stumps.  Following Boyda, the output of each
-weak classifier is scaled to `-1/N` and `+1/N`.
+tree rules, also known as decision stumps.  Following Refs. [1,4], the output of
+each weak classifier is scaled to `-1/N` and `+1/N`.
 
 ## Disclaimer
 
-This demo and its code are intended for demonstrative purposes only and are not
+This demo and its code are intended for demonstration purposes only and are not
 designed for performance.  There are a variety of additional considerations, not
 addressed in the example code, which should be considered as part of a more
 detailed implementation.  These include:
 
 - This example uses simple decision stumps as weak classifiers, but in principle
   the method can be applied to any collection of weak classifiers.
-- Iteration to select weak classifiers in batches (see Neven, 2012).
+- Iteration to select weak classifiers in batches [2].
 - More rigorous determination of the regularization parameter.
 - Further evaluation of weak classifier output scaling.  Most prior work in the
   literature scales the weak classifier outputs by the number of weak
-  classifiers.  Boyda suggests that scaling by the square root instead produces
-  a more natural definition.
+  classifiers.  Ref. [4] suggests that scaling by the square root instead
+  is more natural.
 - This example employs a bit depth of 1, so that the weight associated with each
   classifier is limited to 0 or 1.  It is possible to increase the bit depth,
-  for example as discussed in Neven (2008).  Nevertheless, it has been reported
+  for example as discussed Ref. [1].  Nevertheless, it has been reported
   that low bit depths can improve performance, particularly on smaller training
   sets.
 
 ## References
 
-Neven, H., Dencheve, V. S., Rose, G., and Macready, W. G.  Training a Binary
+[1] Neven, H., Dencheve, V. S., Rose, G., and Macready, W. G.  Training a Binary
 Classifier with the Quantum Adiabatic Algorithm, 2008,
 [arXiv:0811.0416v1](https://arxiv.org/pdf/0811.0416.pdf)
 
-Neven, H., Dencheve, V. S., Rose, G., and Macready, W. G.  QBoost: Large Scale
+[2] Neven, H., Dencheve, V. S., Rose, G., and Macready, W. G.  QBoost: Large Scale
 Classifier Training with Adiabatic Quantum Optimization, Journal of Machine
 Learning Research: Workshop and Conference Proceedings, 2012.  URL:
 http://proceedings.mlr.press/v25/neven12/neven12.pdf.
 
-Mott, A., Job, J., Vlimant, J.-R., Lidar, D., and Spiropulu, M.  Solving a Higgs
+[3] Mott, A., Job, J., Vlimant, J.-R., Lidar, D., and Spiropulu, M.  Solving a Higgs
 optimization problem with quantum annealing for machine learning.  Nature,
 Vol. 550, 2017, doi:10.1038/nature24047.
 
-Boyda, E., Basu, S., Ganguly, S., Michaelis, A., Mukhopadhyay, S., and Nemani,
+[4] Boyda, E., Basu, S., Ganguly, S., Michaelis, A., Mukhopadhyay, S., and Nemani,
 R. R.  Deploying a quantum annealing processor to detect tree cover in aerial
 imagery of California.  PLoS One, 2017, doi:10.1371/journal.pone.0172505.
 
