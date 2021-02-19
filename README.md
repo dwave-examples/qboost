@@ -32,13 +32,14 @@ python demo.py digits
 
 ### Blobs data set
 
-This is a simple synthetically generated data set for illustrative purposes.  It
-is based on the scikit-learn function `sklearn.datasets.make_blobs`, which
-generates a data set for classification with an arbitrary number of features,
-samples, and informative features.  The features are randomly generated from
-Gaussian distributions.  For each informative feature, the mean value of the
-feature differs between the two target classes, while the non-informative
-features are sampled from the same probability distribution in each class.
+This is a simple synthetically generated data set for illustrative purposes,
+based on the scikit-learn function `sklearn.datasets.make_blobs`.  Data for
+classification are randomly generated with two classes and an arbitrary number
+of samples, total features, and informative features.  The features are randomly
+generated from Gaussian distributions.  For each informative feature, the mean
+value of the feature differs between the two target classes, while the
+non-informative features are sampled from the same probability distribution in
+each class.
 
 Each run of the demo will randomly generate the data set and split it into
 training, validation, and test sets.  The validation set is used to determine
