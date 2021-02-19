@@ -6,14 +6,13 @@
 
 In machine learning, boosting methods are used to combine a set of simple,
 "weak" predictors in such a way as to produce a more powerful, "strong"
-predictor.  QBoost is an approach for boosting that involves selecting weak
-classifiers based on minimization of quadratic loss (squared difference between
-the observed and predicted label), so that the resulting optimization problem
-can be formulated as a binary quadratic model and solved on the D-Wave system.
-This approach has been explored previously in the literature, for example
-Refs. [1-4].
+predictor.  The QBoost method selects weak classifiers by minimizing the squared
+difference between observed and predicted labels.  The resulting optimization
+problem can be formulated as a binary quadratic model and solved on the D-Wave
+system.  This approach has been explored previously in the literature, for
+example Refs. [1-4].
 
-This example illustrates the application of a QBoost formulation towards two
+This example illustrates the application of a QBoost formulation on two
 illustrative data sets.
 
 ## Usage
@@ -34,19 +33,19 @@ python demo.py digits
 ### Blobs data set
 
 This is a simple synthetically generated data set for illustrative purposes.  It
-is based on the scikit-learn function `sklearn.datasets.make_blobs`.  It
+is based on the scikit-learn function `sklearn.datasets.make_blobs`, which
 generates a data set for classification with an arbitrary number of features,
 samples, and informative features.  The features are randomly generated from
-Gaussian distributions.  For each informative feature, the mean value differs
-between the two target classes, while the non-informative features are sampled
-from the same probability distribution in each class.
+Gaussian distributions.  For each informative feature, the mean value of the
+feature differs between the two target classes, while the non-informative
+features are sampled from the same probability distribution in each class.
 
 Each run of the demo will randomly generate the data set and split it into
 training, validation, and test sets.  The validation set is used to determine
 the best value of the regularization parameter using a simple parameter sweep.
-The results of the demo will print the indices of the actual informative
-features, the features that are selected by QBoost, and the accuracy of the
-resulting ensemble classifier on the test set.
+The results of the demo will print the indices of the informative features, the
+features that are selected by QBoost, and the accuracy of the resulting ensemble
+classifier on the test set.
 
 The values of the number of samples, number of features, and number of
 informative features can be controlled using command line arguments, as
@@ -58,11 +57,12 @@ python demo.py blobs -h
 
 ### Digits data set
 
-The digits data is based on the well-known handwritten digits data set.  Each
-instance is a digitized image of a handwritten digit.  The images consist of 8x8
-grayscale pixel values, which are represented as 64 features.  The goal is to
-construct a classifier that can predict the digit that is represented by an
-image.
+The digits data is based on the well-known [handwritten digits data
+set](https://scikit-learn.org/stable/datasets/toy_dataset.html#optical-recognition-of-handwritten-digits-dataset).
+Each instance is a digitized image of a handwritten digit.  The images consist
+of 8x8 grayscale pixel values, which are represented as 64 features.  The goal
+is to construct a classifier that can predict the digit that is represented by
+an image.
 
 This demonstration constructs a binary classification problem using images for any two
 of the available ten digits, as specified by the `--digit1` and `--digit2`
@@ -97,11 +97,12 @@ written as [1]:
 
 where `s` is an index over training instances, `i` is an index over features,
 `h_i(x_s)` denote the weak classifiers, `y_s` denote the observed targets, `w_i`
-are the weights to be determined, and lambda is the regularization parameter.
-In this demonstration, the weights are treated as binary variables that take a
-value of either 0 or 1.  The weak classifiers are constructed from a series of
-single-feature decision tree rules, also known as decision stumps.  Following
-Refs. [1,4], the output of each weak classifier is scaled to `-1/N` and `+1/N`.
+are the weights to be determined, and lambda is the regularization parameter,
+which multiplies the L0 norm of the weight vector.  In this demonstration, the
+weights are treated as binary variables that take a value of either 0 or 1.  The
+weak classifiers are constructed from a series of single-feature decision tree
+rules, also known as decision stumps.  Following Refs. [1,4], the output of each
+weak classifier is scaled to `-1/N` and `+1/N`.
 
 ## Disclaimer
 
