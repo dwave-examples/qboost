@@ -61,11 +61,10 @@ if __name__ == '__main__':
         lambdas = normalized_lambdas / n_features
         qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
 
-        print('best lambda:', lam)
-        print('informative features:', list(range(n_informative)))
-        print('   selected features:', qboost.get_selected_features())
+        print('Informative features:', list(range(n_informative)))
+        print('Selected features:', qboost.get_selected_features())
 
-        print('score on test set:', qboost.score(X_test, y_test))
+        print('Score on test set:', qboost.score(X_test, y_test))
 
 
     if args.dataset == 'digits':
@@ -85,10 +84,9 @@ if __name__ == '__main__':
         lambdas = normalized_lambdas / n_features
         qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
 
-        print('best lambda:', lam)
-        print('number of selected features:', len(qboost.get_selected_features()))
+        print('Number of selected features:', len(qboost.get_selected_features()))
 
-        print('score on test set:', qboost.score(X_test, y_test))
+        print('Score on test set:', qboost.score(X_test, y_test))
 
         if args.plot_digits:
             digits = load_digits()
