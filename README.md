@@ -86,13 +86,13 @@ python demo.py digits -h
 
 ## Code Overview
 
-Given a set of `N` weak classifiers, the objective is to construct a strong
-classifier by selecting a subset of weak classifiers.  QBoost does this by
-formulating an optimization problem in which the objective is to minimize the
-squared loss between the actual and predicted targets with the strong
-classifier.  A regularization term is also included to penalize complex models
-that include more weak classifiers.  The resulting optimization problem can be
-written as [1]:
+Boosting methods construct a strong classifier by intelligently combining a set
+of weak classifiers.  Given a set of `N` weak classifiers, QBoost solves an
+optimization problem to select weak classifiers.  The objective of this
+optimization problem is to minimize the strong classifier's squared loss between
+actual and predicted targets.  A regularization term is also included to
+penalize complex models that include more weak classifiers.  The resulting
+optimization problem can be written as [1]:
 
 ![Objective](images/objective.png)
 
