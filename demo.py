@@ -183,7 +183,8 @@ if __name__ == '__main__':
 
         print('MNIST handwritten digits data set:')
 
-        mnist = fetch_openml('mnist_784', version=1)
+        # Note: as_frame default changed between scikit-learn 0.23 and 0.24
+        mnist = fetch_openml('mnist_784', version=1, as_frame=False)
 
         idx = np.arange(len(mnist['data']))
         np.random.shuffle(idx)
