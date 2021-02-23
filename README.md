@@ -105,7 +105,9 @@ weak classifier is scaled to `-1/N` and `+1/N`.
 By default, the demonstration is run with a fixed value of the regularization
 parameter, lambda.  If the `--cross-validation` option is used, then a simple
 parameter sweep is performed, and the value of lambda is selected on the basis
-of providing the highest accuracy on a validation set.
+of providing the highest accuracy on a validation set.  This requires repeatedly
+solving the optimization problem, and the demonstration may take several minutes
+to run when this option is used.
 
 ## Disclaimer
 
