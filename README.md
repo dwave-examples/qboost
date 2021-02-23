@@ -42,11 +42,9 @@ non-informative features are sampled from the same probability distribution in
 each class.
 
 Each run of the demo will randomly generate the data set and split it into
-training, validation, and test sets.  The validation set is used to determine
-the best value of the regularization parameter using a simple parameter sweep.
-The results of the demo will print the indices of the informative features, the
-features that are selected by QBoost, and the accuracy of the resulting ensemble
-classifier on the test set.
+training and test sets. The results of the demo will print the indices of the
+informative features, the features that are selected by QBoost, and the accuracy
+of the resulting ensemble classifier on the test set.
 
 The values of the number of samples, number of features, and number of
 informative features can be controlled using command line arguments, as
@@ -65,13 +63,12 @@ of 8x8 grayscale pixel values, which are represented as 64 features.  The goal
 is to construct a classifier that can predict the digit that is represented by
 an image.
 
-This demonstration constructs a binary classification problem using images for any two
-of the available ten digits, as specified by the `--digit1` and `--digit2`
-command line options (the defaults are 0 and 1).  As with the blobs data set,
-the available data are first split into training, validation, and test sets.
-The validation set is used to determine the value of the regularization
-parameter using a parameter sweep.  The demonstration will print the number of
-features selected by QBoost, along with the prediction accuracy on the test set.
+This demonstration constructs a binary classification problem using images for
+any two of the available ten digits, as specified by the `--digit1` and
+`--digit2` command line options (the defaults are 0 and 1).  As with the blobs
+data set, the available data are split into training and test sets.  The
+demonstration will print the number of features selected by QBoost, along with
+the prediction accuracy on the test set.
 
 The `--plot-digits` option is also provided to display one instance of the
 images for each of the two selected digits.  The displayed images are chosen
@@ -104,6 +101,11 @@ weights are treated as binary variables that take a value of either 0 or 1.  The
 weak classifiers are constructed from a series of single-feature decision tree
 rules, also known as decision stumps.  Following Refs. [1,4], the output of each
 weak classifier is scaled to `-1/N` and `+1/N`.
+
+By default, the demonstration is run with a fixed value of the regularization
+parameter, lambda.  If the `--cross-validation` option is used, then a simple
+parameter sweep is performed, and the value of lambda is selected on the basis
+of providing the highest accuracy on a validation set.
 
 ## Disclaimer
 

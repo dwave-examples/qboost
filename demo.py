@@ -22,7 +22,7 @@ except ImportError:
     # Not required for demo
     pass
 
-from qboost import qboost_lambda_sweep
+from qboost import QBoostClassifier, qboost_lambda_sweep
 from datasets import make_blob_data, get_handwritten_digits_data
 
 
@@ -31,6 +31,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Run QBoost example", epilog="Information about additional options that are specific to the data set can be obtained using either 'demo.py blobs -h' or 'demo.py digits -h'.")
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--cross-validation', action='store_true', help='use cross-validation to estimate the value of the regularization parameter')
 
     subparsers = parser.add_subparsers(title='dataset', description='dataset to use', dest='dataset', required=True)
 
@@ -56,10 +57,14 @@ if __name__ == '__main__':
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
 
-        # See Boyda et al. (2017), Eq. (17) regarding normalization
-        normalized_lambdas = np.linspace(0.0, 0.5, 10)
-        lambdas = normalized_lambdas / n_features
-        qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
+        if args.cross_validation:
+            # See Boyda et al. (2017), Eq. (17) regarding normalization
+            normalized_lambdas = np.linspace(0.0, 0.5, 10)
+            lambdas = normalized_lambdas / n_features
+            print('Performing cross-validation using {} values of lambda, this may take several minutes...'.format(len(lambdas)))
+            qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
+        else:
+            qboost = QBoostClassifier(X_train, y_train, 0.01)
 
         print('Informative features:', list(range(n_informative)))
         print('Selected features:', qboost.get_selected_features())
@@ -79,10 +84,14 @@ if __name__ == '__main__':
         print('Number of training samples:', len(X_train))
         print('Number of test samples:', len(X_test))
 
-        # See Boyda et al. (2017), Eq. (17) regarding normalization
-        normalized_lambdas = np.linspace(0.0, 1.75, 10)
-        lambdas = normalized_lambdas / n_features
-        qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
+        if args.cross_validation:
+            # See Boyda et al. (2017), Eq. (17) regarding normalization
+            normalized_lambdas = np.linspace(0.0, 1.75, 10)
+            lambdas = normalized_lambdas / n_features
+            print('Performing cross-validation using {} values of lambda, this make take several minutes...'.format(len(lambdas)))
+            qboost, lam = qboost_lambda_sweep(X_train, y_train, lambdas, verbose=args.verbose)
+        else:
+            qboost = QBoostClassifier(X_train, y_train, 0.01)
 
         print('Number of selected features:', len(qboost.get_selected_features()))
 
