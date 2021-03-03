@@ -305,11 +305,14 @@ def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kw
     best_lambda = None
     best_clf = None
 
+    if verbose:
+        print('{:7} {} {}:'.format('lambda','n_features', 'score'))
+
     for lam in lambda_vals:
         qb = QBoostClassifier(X_train, y_train, lam, **kwargs)
         score = qb.score(X_val, y_val)
         if verbose:
-            print('lambda, n_features, score:', lam, len(qb.get_selected_features()), score)
+            print('{:<7.4f} {:<10} {:<6.3f}'.format(lam, len(qb.get_selected_features()), score))
         if score > best_score:
             best_score = score
             best_clf = qb

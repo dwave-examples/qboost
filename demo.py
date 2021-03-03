@@ -69,7 +69,7 @@ if __name__ == '__main__':
         print('Informative features:', list(range(n_informative)))
         print('Selected features:', qboost.get_selected_features())
 
-        print('Score on test set:', qboost.score(X_test, y_test))
+        print('Score on test set: {:.3f}'.format(qboost.score(X_test, y_test)))
 
 
     if args.dataset == 'digits':
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
         print('Number of selected features:', len(qboost.get_selected_features()))
 
-        print('Score on test set:', qboost.score(X_test, y_test))
+        print('Score on test set: {:.3f}'.format(qboost.score(X_test, y_test)))
 
         if args.plot_digits:
             digits = load_digits()
