@@ -132,11 +132,11 @@ detailed implementation.  These include:
 
 ## References
 
-[1] Neven, H., Dencheve, V. S., Rose, G., and Macready, W. G.  Training a Binary
+[1] Neven, H., Denchev, V. S., Rose, G., and Macready, W. G.  Training a Binary
 Classifier with the Quantum Adiabatic Algorithm, 2008,
 [arXiv:0811.0416v1](https://arxiv.org/pdf/0811.0416.pdf)
 
-[2] Neven, H., Dencheve, V. S., Rose, G., and Macready, W. G.  QBoost: Large Scale
+[2] Neven, H., Denchev, V. S., Rose, G., and Macready, W. G.  QBoost: Large Scale
 Classifier Training with Adiabatic Quantum Optimization, Journal of Machine
 Learning Research: Workshop and Conference Proceedings, 2012.  URL:
 http://proceedings.mlr.press/v25/neven12/neven12.pdf.
