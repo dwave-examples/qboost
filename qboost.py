@@ -23,10 +23,11 @@ from dwave.system import LeapHybridSampler
 
 class DecisionStumpClassifier:
     """Decision tree classifier that operates on a single feature with a single splitting rule.
-    
+
     The index of the feature used in the decision rule is stored
     relative to the original data frame.
     """
+
     def __init__(self, X, y, feature_index):
         """Initialize and fit the classifier.
 
@@ -49,14 +50,14 @@ class DecisionStumpClassifier:
 
     def predict(self, X):
         """Predict class.
-        
+
         Args:
             X (array):
                 2D array of feature vectors.  Note that the array
                 contains all features, while the weak classifier
                 itself will make a prediction based only a single
                 feature.
-        
+
         Returns:
             Array of class labels.
         """
@@ -75,9 +76,10 @@ def _build_H(classifiers, X, output_scale):
 
 class EnsembleClassifier:
     """Ensemble of weak classifiers."""
+
     def __init__(self, weak_classifiers, weights, weak_classifier_scaling, offset=1e-9):
         """Initialize ensemble from list of weak classifiers and weights.
-        
+
         Args:
             weak_classifiers (list):
                 List of classifier instances.
@@ -119,7 +121,7 @@ class EnsembleClassifier:
         # passed through the sign function.  Such zero predictions can
         # happen when the weak classifiers exactly balance each other
         # out.
-        preds[preds==0] = 1e-9
+        preds[preds == 0] = 1e-9
 
         return np.sign(preds)
 
@@ -136,7 +138,7 @@ class EnsembleClassifier:
         Provided for testing purposes.
         """
         p = self.predict(X)
-        return sum( (p - y)**2 )
+        return sum((p - y)**2)
 
     def fit_offset(self, X):
         """Fit offset value based on class-balanced feature vectors.
@@ -151,17 +153,19 @@ class EnsembleClassifier:
 
     def get_selected_features(self):
         """Return list of features corresponding to the selected weak classifiers."""
-        return [clf.i for clf,w in zip(self.classifiers, self.w) if w > 0]
+        return [clf.i for clf, w in zip(self.classifiers, self.w) if w > 0]
 
 
 class AllStumpsClassifier(EnsembleClassifier):
     """Ensemble classifier with one decision stump for each feature."""
+
     def __init__(self, X, y):
         if not all(np.isin(y, [-1, 1])):
             raise ValueError("Class labels should be +/- 1")
 
         num_featuers = np.size(X, 1)
-        classifiers = [DecisionStumpClassifier(X, y, i) for i in range(num_featuers)]
+        classifiers = [DecisionStumpClassifier(
+            X, y, i) for i in range(num_featuers)]
 
         # Note: the weak classifier output scaling is arbitrary in
         # this case and does not affect the predictions.
@@ -201,14 +205,16 @@ def _build_bqm(H, y, lam):
     for i in range(n_classifiers):
         # Note: the last term with h_i^2 is part of the first term in
         # Eq. (12) of Neven et al. (2008), where i=j.
-        bqm.add_variable(i, lam - 2.0 * samples_factor * np.dot(H[:,i], y) + samples_factor * np.dot(H[:,i], H[:,i]))
+        bqm.add_variable(i, lam - 2.0 * samples_factor *
+                         np.dot(H[:, i], y) + samples_factor * np.dot(H[:, i], H[:, i]))
 
     for i in range(n_classifiers):
         for j in range(i+1, n_classifiers):
             # Relative to Eq. (12) from Neven et al. (2008), the
             # factor of 2 appears here because each term appears twice
             # in a sum over all i,j.
-            bqm.add_interaction(i, j, 2.0 * samples_factor * np.dot(H[:,i], H[:,j]))
+            bqm.add_interaction(
+                i, j, 2.0 * samples_factor * np.dot(H[:, i], H[:, j]))
 
     return bqm
 
@@ -229,11 +235,12 @@ class QBoostClassifier(EnsembleClassifier):
     """Construct an ensemble classifier using quadratic loss minimization.
 
     """
+
     def __init__(self, X, y, lam, weak_clf_scale=None, drop_unused=True):
         """Initialize and fit QBoost classifier.
 
         X should already include all candidate features (e.g., interactions).
-        
+
         Args:
             X (array):
                 2D array of feature vectors.
@@ -255,19 +262,21 @@ class QBoostClassifier(EnsembleClassifier):
         if weak_clf_scale is None:
             weak_clf_scale = 1 / num_features
 
-        wclf_candidates = [DecisionStumpClassifier(X, y, i) for i in range(num_features)]
+        wclf_candidates = [DecisionStumpClassifier(
+            X, y, i) for i in range(num_features)]
 
         H = _build_H(wclf_candidates, X, weak_clf_scale)
-        
+
         # For reference, store individual weak classifier scores.
         # Note: we don't check equality h==y here because H might be rescaled.
-        self.weak_scores = np.array( [np.mean( np.sign(h) * y > 0 ) for h in H.T] )
+        self.weak_scores = np.array([np.mean(np.sign(h) * y > 0) for h in H.T])
 
         weights, self.energy = _minimize_squared_loss_binary(H, y, lam)
-        
+
         # Store only the selected classifiers
         if drop_unused:
-            weak_classifiers = [wclf for wclf,w in zip(wclf_candidates, weights) if w > 0]
+            weak_classifiers = [wclf for wclf, w in zip(
+                wclf_candidates, weights) if w > 0]
             weights = weights[weights > 0]
         else:
             weak_classifiers = wclf_candidates
@@ -292,32 +301,32 @@ def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kw
             Print out diagnostic information to screen.
         kwargs:
             Passed to QBoost.__init__.
-    
+
     Returns:
         QBoostClassifier:
             QBoost instance with best validation score.
         lambda:
             Lambda value corresponding to the best validation score.
     """
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=val_fraction)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=val_fraction)
 
     best_score = -1
     best_lambda = None
     best_clf = None
 
     if verbose:
-        print('{:7} {} {}:'.format('lambda','n_features', 'score'))
+        print('{:7} {} {}:'.format('lambda', 'n_features', 'score'))
 
     for lam in lambda_vals:
         qb = QBoostClassifier(X_train, y_train, lam, **kwargs)
         score = qb.score(X_val, y_val)
         if verbose:
-            print('{:<7.4f} {:<10} {:<6.3f}'.format(lam, len(qb.get_selected_features()), score))
+            print('{:<7.4f} {:<10} {:<6.3f}'.format(
+                lam, len(qb.get_selected_features()), score))
         if score > best_score:
             best_score = score
             best_clf = qb
             best_lambda = lam
 
     return best_clf, lam
-
-
