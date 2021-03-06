@@ -35,8 +35,10 @@ if __name__ == '__main__':
     parser.add_argument('--cross-validation', action='store_true',
                         help='use cross-validation to estimate the value of the regularization parameter')
 
+    # Note: required=True could be useful here, but not available
+    # until Python 3.7
     subparsers = parser.add_subparsers(
-        title='dataset', description='dataset to use', dest='dataset', required=True)
+        title='dataset', description='dataset to use', dest='dataset')
 
     sp_blobs = subparsers.add_parser('blobs', help='blobs data set')
     sp_blobs.add_argument('--num-samples', type=int, default=2000,
@@ -83,7 +85,7 @@ if __name__ == '__main__':
 
         print('Score on test set: {:.3f}'.format(qboost.score(X_test, y_test)))
 
-    if args.dataset == 'digits':
+    elif args.dataset == 'digits':
         if args.digit1 == args.digit2:
             raise ValueError("must use two different digits")
 
@@ -128,3 +130,6 @@ if __name__ == '__main__':
                 ax.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
 
             plt.show()
+
+    elif not args.dataset:
+        parser.print_help()
