@@ -13,213 +13,118 @@
 #    limitations under the License.
 
 
-from __future__ import print_function, division
-
-import sys
-
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_digits
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    # Not required for demo
+    pass
 
-from sklearn import preprocessing, metrics
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.datasets import load_breast_cancer, fetch_openml
-from sklearn.impute import SimpleImputer
-from dwave.system.samplers import DWaveSampler
-from dwave.system.composites import EmbeddingComposite
-
-from qboost import WeakClassifiers, QBoostClassifier, QBoostPlus
-
-
-def metric(y, y_pred):
-
-    return metrics.accuracy_score(y, y_pred)
-
-
-def print_accuracy(y_train, y_train_pred, y_test, y_test_pred):
-    """Print information about accuracy."""
-
-    print('    Accuracy on training set: {:5.2f}'.format(metric(y_train, y_train_pred)))
-    print('    Accuracy on test set:     {:5.2f}'.format(metric(y_test, y_test_pred)))
-
-
-def train_models(X_train, y_train, X_test, y_test, lmd, verbose=False):
-    """
-    Train a series of 4 boosted classification models.
-    
-    Args:
-        X_train (array):
-            2D array of features for training.
-        y_train (array):
-            1D array of labels for training.
-        X_test (array):
-            2D array of features for testing.
-        y_test (array):
-            1D array of labels for testing.
-        lam (float):
-            lambda parameter to control regularization term.
-        verbose (bool):
-            If True, print weak classifier weights.
-    """
-    NUM_READS = 3000
-    NUM_WEAK_CLASSIFIERS = 35
-    # lmd = 0.5
-    TREE_DEPTH = 3
-
-    # define sampler
-    dwave_sampler = DWaveSampler()
-    emb_sampler = EmbeddingComposite(dwave_sampler)
-
-    N_train = len(X_train)
-    N_test = len(X_test)
-
-    print('Size of training set:', N_train)
-    print('Size of test set:    ', N_test)
-    print('Number of weak classifiers:', NUM_WEAK_CLASSIFIERS)
-    print('Tree depth:', TREE_DEPTH)
-
-
-    # input: dataset X and labels y (in {+1, -1}
-
-    # Preprocessing data
-    # imputer = SimpleImputer()
-    scaler = preprocessing.StandardScaler()     # standardize features
-    normalizer = preprocessing.Normalizer()     # normalize samples
-
-    # X = imputer.fit_transform(X)
-    X_train = scaler.fit_transform(X_train)
-    X_train = normalizer.fit_transform(X_train)
-
-    # X_test = imputer.fit_transform(X_test)
-    X_test = scaler.fit_transform(X_test)
-    X_test = normalizer.fit_transform(X_test)
-
-
-    # ===============================================
-    print('\nAdaboost:')
-
-    clf = AdaBoostClassifier(n_estimators=NUM_WEAK_CLASSIFIERS)
-
-    # scores = cross_val_score(clf, X, y, cv=5, scoring='accuracy')
-    clf.fit(X_train, y_train)
-
-    hypotheses_ada = clf.estimators_
-    # clf.estimator_weights_ = np.random.uniform(0,1,size=NUM_WEAK_CLASSIFIERS)
-    y_train_pred = clf.predict(X_train)
-    y_test_pred = clf.predict(X_test)
-
-    print_accuracy(y_train, y_train_pred, y_test, y_test_pred)
-
-
-    # ===============================================
-    print('\nDecision tree:')
-
-    clf2 = WeakClassifiers(n_estimators=NUM_WEAK_CLASSIFIERS, max_depth=TREE_DEPTH)
-    clf2.fit(X_train, y_train)
-
-    y_train_pred2 = clf2.predict(X_train)
-    y_test_pred2 = clf2.predict(X_test)
-
-    if verbose:
-        print('weights:\n', clf2.estimator_weights)
-
-    print_accuracy(y_train, y_train_pred2, y_test, y_test_pred2)
-
-
-    # ===============================================
-    print('\nQBoost:')
-
-    DW_PARAMS = {'num_reads': NUM_READS,
-                 'auto_scale': True,
-                 # "answer_mode": "histogram",
-                 'num_spin_reversal_transforms': 10,
-                 # 'annealing_time': 10,
-                 }
-
-    clf3 = QBoostClassifier(n_estimators=NUM_WEAK_CLASSIFIERS, max_depth=TREE_DEPTH)
-    clf3.fit(X_train, y_train, emb_sampler, lmd=lmd, **DW_PARAMS)
-
-    y_train_dw = clf3.predict(X_train)
-    y_test_dw = clf3.predict(X_test)
-
-    if verbose:
-        print('weights\n', clf3.estimator_weights)
-
-    print_accuracy(y_train, y_train_dw, y_test, y_test_dw)
-
-
-    # ===============================================
-    print('\nQBoostPlus:')
-    clf4 = QBoostPlus([clf, clf2, clf3])
-    clf4.fit(X_train, y_train, emb_sampler, lmd=lmd, **DW_PARAMS)
-    y_train4 = clf4.predict(X_train)
-    y_test4 = clf4.predict(X_test)
-
-    if verbose:
-        print('weights\n', clf4.estimator_weights)
-
-    print_accuracy(y_train, y_train4, y_test, y_test4)
-
-
-    print()
-    print('=' * 28)
-    print("{:14}{:7}{:7}".format("Method", "Train", "Test"))
-    print('-' * 28)
-    for name, _y_train_pred, _y_test_pred in zip(["Adaboost", "DecisionTree", "QBoost", "QBoostIt"],
-                                                 [y_train_pred, y_train_pred2, y_train_dw, y_train4],
-                                                 [y_test_pred, y_test_pred2, y_test_dw, y_test4]):
-        print("{:14}{:<7.2f}{:<7.2f}".format(name, metric(y_train, _y_train_pred), metric(y_test, _y_test_pred)))
-    print('=' * 28)
+from qboost import QBoostClassifier, qboost_lambda_sweep
+from datasets import make_blob_data, get_handwritten_digits_data
 
 
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("dataset", choices=["mnist", "wisc"], help="data set to analyze")
-    parser.add_argument("--verbose", action="store_true", help="display additional output")
+    parser = argparse.ArgumentParser(description="Run QBoost example",
+                                     epilog="Information about additional options that are specific to the data set can be obtained using either 'demo.py blobs -h' or 'demo.py digits -h'.")
+    parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--cross-validation', action='store_true',
+                        help='use cross-validation to estimate the value of the regularization parameter')
+
+    subparsers = parser.add_subparsers(
+        title='dataset', description='dataset to use', dest='dataset', required=True)
+
+    sp_blobs = subparsers.add_parser('blobs', help='blobs data set')
+    sp_blobs.add_argument('--num-samples', type=int, default=2000,
+                          help='number of samples (default: %(default)s)')
+    sp_blobs.add_argument('--num-features', type=int, default=10,
+                          help='number of features (default: %(default)s)')
+    sp_blobs.add_argument('--num-informative', type=int, default=2,
+                          help='number of informative features (default: %(default)s)')
+
+    sp_digits = subparsers.add_parser(
+        'digits', help='handwritten digits data set')
+    sp_digits.add_argument('--digit1', type=int, default=0, choices=range(10),
+                           help='first digit to include (default: %(default)s)')
+    sp_digits.add_argument('--digit2', type=int, default=1, choices=range(10),
+                           help='second digit to include (default: %(default)s)')
+    sp_digits.add_argument('--plot-digits', action='store_true',
+                           help='plot a random sample of each digit')
 
     args = parser.parse_args()
 
-    if args.dataset == 'mnist':
+    if args.dataset == 'blobs':
+        n_samples = args.num_samples
+        n_features = args.num_features
+        n_informative = args.num_informative
 
-        print('MNIST handwritten digits data set:')
+        X, y = make_blob_data(
+            n_samples=n_samples, n_features=n_features, n_informative=n_informative)
 
-        # Note: as_frame default changed between scikit-learn 0.23 and 0.24
-        mnist = fetch_openml('mnist_784', version=1, as_frame=False)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.4)
 
-        idx = np.arange(len(mnist['data']))
-        np.random.shuffle(idx)
+        if args.cross_validation:
+            # See Boyda et al. (2017), Eq. (17) regarding normalization
+            normalized_lambdas = np.linspace(0.0, 0.5, 10)
+            lambdas = normalized_lambdas / n_features
+            print('Performing cross-validation using {} values of lambda, this may take several minutes...'.format(len(lambdas)))
+            qboost, lam = qboost_lambda_sweep(
+                X_train, y_train, lambdas, verbose=args.verbose)
+        else:
+            qboost = QBoostClassifier(X_train, y_train, 0.01)
 
-        n = 5000
-        idx = idx[:n]
-        idx_train = idx[:2*n//3]
-        idx_test = idx[2*n//3:]
+        print('Informative features:', list(range(n_informative)))
+        print('Selected features:', qboost.get_selected_features())
 
-        X_train = mnist['data'][idx_train]
-        X_test = mnist['data'][idx_test]
+        print('Score on test set: {:.3f}'.format(qboost.score(X_test, y_test)))
 
-        # Note: mnist['target'] is an array of string numbers, hence the comparison with '4'
-        y_train = 2*(mnist['target'][idx_train] <= '4') - 1
-        y_test = 2*(mnist['target'][idx_test] <= '4') - 1
+    if args.dataset == 'digits':
+        if args.digit1 == args.digit2:
+            raise ValueError("must use two different digits")
 
-        train_models(X_train, y_train, X_test, y_test, 1.0, verbose=args.verbose)
+        X, y = get_handwritten_digits_data(args.digit1, args.digit2)
+        n_features = np.size(X, 1)
 
-    elif args.dataset == 'wisc':
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.4)
+        print('Number of features:', np.size(X, 1))
+        print('Number of training samples:', len(X_train))
+        print('Number of test samples:', len(X_test))
 
-        print('Wisconsin breast cancer data set:')
+        if args.cross_validation:
+            # See Boyda et al. (2017), Eq. (17) regarding normalization
+            normalized_lambdas = np.linspace(0.0, 1.75, 10)
+            lambdas = normalized_lambdas / n_features
+            print('Performing cross-validation using {} values of lambda, this make take several minutes...'.format(len(lambdas)))
+            qboost, lam = qboost_lambda_sweep(
+                X_train, y_train, lambdas, verbose=args.verbose)
+        else:
+            qboost = QBoostClassifier(X_train, y_train, 0.01)
 
-        wisc = load_breast_cancer()
+        print('Number of selected features:',
+              len(qboost.get_selected_features()))
 
-        idx = np.arange(len(wisc.target))
-        np.random.shuffle(idx)
+        print('Score on test set: {:.3f}'.format(qboost.score(X_test, y_test)))
 
-        # train on a random 2/3 and test on the remaining 1/3
-        idx_train = idx[:2*len(idx)//3]
-        idx_test = idx[2*len(idx)//3:]
+        if args.plot_digits:
+            digits = load_digits()
 
-        X_train = wisc.data[idx_train]
-        X_test = wisc.data[idx_test]
+            images1 = [image for image, target in zip(
+                digits.images, digits.target) if target == args.digit1]
+            images2 = [image for image, target in zip(
+                digits.images, digits.target) if target == args.digit2]
 
-        y_train = 2 * wisc.target[idx_train] - 1  # binary -> spin
-        y_test = 2 * wisc.target[idx_test] - 1
+            f, axes = plt.subplots(1, 2)
 
-        train_models(X_train, y_train, X_test, y_test, 1.0, verbose=args.verbose)
+            # Select a random image from each set to show:
+            i1 = np.random.choice(len(images1))
+            i2 = np.random.choice(len(images2))
+            for ax, image in zip(axes, (images1[i1], images2[i2])):
+                ax.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
+
+            plt.show()

@@ -12,404 +12,321 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, AdaBoostRegressor
 import numpy as np
-from copy import deepcopy
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+import dimod
+from dwave.system import LeapHybridSampler
 
 
-def weight_penalty(prediction, y, percent = 0.1): 
-    """Compute normalized penalty values for regression predictions.
-    
-    For regression we have to introduce a metric to penalize
-    differences of the prediction from the label y.
+class DecisionStumpClassifier:
+    """Decision tree classifier that operates on a single feature with a single splitting rule.
+
+    The index of the feature used in the decision rule is stored
+    relative to the original data frame.
+    """
+
+    def __init__(self, X, y, feature_index):
+        """Initialize and fit the classifier.
+
+        Args:
+            X (array): 
+                2D array of feature vectors.  Note that the array
+                contains all features, while the weak classifier
+                itself uses only a single feature.
+            y (array):
+                1D array of class labels, as ints.  Labels should be
+                +/- 1.
+            feature_index (int):
+                Index for the feature used by the weak classifier,
+                relative to the overall data frame.
+        """
+        self.i = feature_index
+
+        self.clf = DecisionTreeClassifier(max_depth=1)
+        self.clf.fit(X[:, [feature_index]], y)
+
+    def predict(self, X):
+        """Predict class.
+
+        Args:
+            X (array):
+                2D array of feature vectors.  Note that the array
+                contains all features, while the weak classifier
+                itself will make a prediction based only a single
+                feature.
+
+        Returns:
+            Array of class labels.
+        """
+        return self.clf.predict(X[:, [self.i]])
+
+
+def _build_H(classifiers, X, output_scale):
+    """Construct matrix of weak classifier predictions on given set of input vectors."""
+    H = np.array([clf.predict(X) for clf in classifiers], dtype=float).T
+
+    # Rescale H
+    H *= output_scale
+
+    return H
+
+
+class EnsembleClassifier:
+    """Ensemble of weak classifiers."""
+
+    def __init__(self, weak_classifiers, weights, weak_classifier_scaling, offset=1e-9):
+        """Initialize ensemble from list of weak classifiers and weights.
+
+        Args:
+            weak_classifiers (list):
+                List of classifier instances.
+            weights (array):
+                Weights associated with the weak classifiers.
+            weak_classifier_scaling (float):
+                Scaling for weak classifier outputs.
+            offset (float):
+                Offset value for ensemble classifier.  The default
+                value is a small positive number used to prevent
+                ambiguous 0 predictions when weak classifiers exactly
+                balance each other out.
+        """
+        self.classifiers = weak_classifiers
+        self.w = weights
+        self.weak_clf_scale = weak_classifier_scaling
+        self.offset = offset
+
+    def predict(self, X):
+        """Compute ensemble prediction.
+
+        Note that this function returns the numerical value of the
+        ensemble predictor, not the class label.  The predicted class
+        is sign(predict()).
+        """
+        H = _build_H(self.classifiers, X, self.weak_clf_scale)
+
+        # If we've already filtered out those with w=0 and we are only
+        # using binary weights, this is just a sum
+        preds = np.dot(H, self.w)
+        return preds - self.offset
+
+    def predict_class(self, X):
+        """Compute ensemble prediction of class label."""
+        preds = self.predict(X)
+
+        # Add a small perturbation to any predictions that are exactly
+        # 0, because these will not count towards either class when
+        # passed through the sign function.  Such zero predictions can
+        # happen when the weak classifiers exactly balance each other
+        # out.
+        preds[preds == 0] = 1e-9
+
+        return np.sign(preds)
+
+    def score(self, X, y):
+        """Compute accuracy score on given data."""
+        if sum(self.w) == 0:
+            # Avoid difficulties that occur with handling this below
+            return 0.0
+        return accuracy_score(y, self.predict_class(X))
+
+    def squared_error(self, X, y):
+        """Compute squared error between predicted and true labels.
+
+        Provided for testing purposes.
+        """
+        p = self.predict(X)
+        return sum((p - y)**2)
+
+    def fit_offset(self, X):
+        """Fit offset value based on class-balanced feature vectors.
+
+        Currently, this assumes that the feature vectors in X
+        correspond to an even split between both classes.
+        """
+        self.offset = 0.0
+        # Todo: review whether it would be appropriate to subtract
+        # mean(y) here to account for unbalanced classes.
+        self.offset = np.mean(self.predict(X))
+
+    def get_selected_features(self):
+        """Return list of features corresponding to the selected weak classifiers."""
+        return [clf.i for clf, w in zip(self.classifiers, self.w) if w > 0]
+
+
+class AllStumpsClassifier(EnsembleClassifier):
+    """Ensemble classifier with one decision stump for each feature."""
+
+    def __init__(self, X, y):
+        if not all(np.isin(y, [-1, 1])):
+            raise ValueError("Class labels should be +/- 1")
+
+        num_featuers = np.size(X, 1)
+        classifiers = [DecisionStumpClassifier(
+            X, y, i) for i in range(num_featuers)]
+
+        # Note: the weak classifier output scaling is arbitrary in
+        # this case and does not affect the predictions.
+        super().__init__(classifiers, np.ones(num_featuers), 1/num_featuers)
+        self.fit_offset(X)
+
+
+def _build_bqm(H, y, lam):
+    """Build BQM.
 
     Args:
-        prediction (array):
-            Array of regression predictions.
+        H (array):
+            2D array of weak classifier predictions.  Each row is a
+            sample point, each column is a classifier.
         y (array):
-            Array of training values.
-        percent (float):
-            Maximum deviation of the prediction from the label that is
-            not penalized.
+            Outputs
+        lam (float):
+            Coefficient that controls strength of regularization term
+            (larger values encourage decreased model complexity).
     """
-    diff = np.abs(prediction-y)
-    min_ = diff.min()
-    max_ = diff.max()
-    norm = (diff-min_)/(max_-min_)
-    norm = 1.0*(norm  < percent)
-    return norm
+    n_samples = np.size(H, 0)
+    n_classifiers = np.size(H, 1)
+
+    # samples_factor is a factor that appears in front of the squared
+    # loss term in the objective.  In theory, it does not affect the
+    # problem solution, but it does affect the relative weighting of
+    # the loss and regularization terms, which is otherwise absorbed
+    # into the lambda parameter.
+
+    # Using an average seems to be more intuitive, otherwise, lambda
+    # is sample-size dependent.
+    samples_factor = 1.0 / n_samples
+
+    bqm = dimod.BQM('BINARY')
+    bqm.offset = samples_factor * n_samples
+
+    for i in range(n_classifiers):
+        # Note: the last term with h_i^2 is part of the first term in
+        # Eq. (12) of Neven et al. (2008), where i=j.
+        bqm.add_variable(i, lam - 2.0 * samples_factor *
+                         np.dot(H[:, i], y) + samples_factor * np.dot(H[:, i], H[:, i]))
+
+    for i in range(n_classifiers):
+        for j in range(i+1, n_classifiers):
+            # Relative to Eq. (12) from Neven et al. (2008), the
+            # factor of 2 appears here because each term appears twice
+            # in a sum over all i,j.
+            bqm.add_interaction(
+                i, j, 2.0 * samples_factor * np.dot(H[:, i], H[:, j]))
+
+    return bqm
 
 
-class WeakClassifiers(object):
+def _minimize_squared_loss_binary(H, y, lam):
+    """Minimize squared loss using binary weight variables."""
+    bqm = _build_bqm(H, y, lam)
+
+    sampler = LeapHybridSampler()
+    results = sampler.sample(bqm, label='Example - QBoost')
+    weights = np.array(list(results.first.sample.values()))
+    energy = results.first.energy
+
+    return weights, energy
+
+
+class QBoostClassifier(EnsembleClassifier):
+    """Construct an ensemble classifier using quadratic loss minimization.
+
     """
-    Collection of weak decision-tree classifiers and boosting using AdaBoost.
-    """
 
-    def __init__(self, n_estimators=50, max_depth=3):
-        self.n_estimators = n_estimators
-        self.estimators_ = []
-        self.max_depth = max_depth
-        self.__construct_wc()
+    def __init__(self, X, y, lam, weak_clf_scale=None, drop_unused=True):
+        """Initialize and fit QBoost classifier.
 
-    def __construct_wc(self):
-
-        self.estimators_ = [DecisionTreeClassifier(max_depth=self.max_depth,
-                                                   random_state=np.random.randint(1000000,10000000))
-                            for _ in range(self.n_estimators)]
-
-    def fit(self, X, y):
-        """Fit estimators.
+        X should already include all candidate features (e.g., interactions).
 
         Args:
             X (array):
-                2D array of features.
+                2D array of feature vectors.
             y (array):
-                1D array of labels.
+                1D array of class labels (+/- 1).
+            lam (float):
+                regularization parameter.
+            weak_clf_scale (float or None):
+                scale factor to apply to weak classifier outputs.  If
+                None, scale by 1/num_classifiers.
+            drop_unused (bool):
+                if True, only retain the nonzero weighted classifiers.
         """
+        if not all(np.isin(y, [-1, 1])):
+            raise ValueError("Class labels should be +/- 1")
 
-        self.estimator_weights = np.zeros(self.n_estimators)
+        num_features = np.size(X, 1)
 
-        d = np.ones(len(X)) / len(X)
-        for i, h in enumerate(self.estimators_):
-            h.fit(X, y, sample_weight=d)
-            pred = h.predict(X)
-            eps = d.dot(pred != y)
-            if eps == 0: # to prevent divided by zero error
-                eps = 1e-20
-            w = (np.log(1 - eps) - np.log(eps)) / 2
-            d = d * np.exp(- w * y * pred)
-            d = d / d.sum()
-            self.estimator_weights[i] = w
+        if weak_clf_scale is None:
+            weak_clf_scale = 1 / num_features
 
-    def predict(self, X):
-        """Predict labels of given feature vectors.
+        wclf_candidates = [DecisionStumpClassifier(
+            X, y, i) for i in range(num_features)]
 
-        Args:
-            X (array):
-                2D array of features.
+        H = _build_H(wclf_candidates, X, weak_clf_scale)
 
-        Returns:
-            array
-        """
+        # For reference, store individual weak classifier scores.
+        # Note: we don't check equality h==y here because H might be rescaled.
+        self.weak_scores = np.array([np.mean(np.sign(h) * y > 0) for h in H.T])
 
-        if not hasattr(self, 'estimator_weights'):
-            raise Exception('Not Fitted Error!')
+        weights, self.energy = _minimize_squared_loss_binary(H, y, lam)
 
-        y = np.zeros(len(X))
-
-        for (h, w) in zip(self.estimators_, self.estimator_weights):
-            y += w * h.predict(X)
-
-        y = np.sign(y)
-
-        return y
-
-    def copy(self):
-
-        classifier = WeakClassifiers(n_estimators=self.n_estimators, max_depth=self.max_depth)
-        classifier.estimators_ = deepcopy(self.estimators_)
-        if hasattr(self, 'estimator_weights'):
-            classifier.estimator_weights = np.array(self.estimator_weights)
-
-        return classifier
-
-
-class QBoostClassifier(WeakClassifiers):
-    """
-    QBoost classifier based on collection of weak decision-tree classifiers.
-    """
-    def __init__(self, n_estimators=50, max_depth=3):
-        super(QBoostClassifier, self).__init__(n_estimators=n_estimators,
-                                              max_depth=max_depth)
-
-    def fit(self, X, y, sampler, lmd=0.2, **kwargs):
-
-        n_data = len(X)
-
-        # step 1: fit weak classifiers
-        super(QBoostClassifier, self).fit(X, y)
-
-        # step 2: create QUBO
-        hij = []
-        for h in self.estimators_:
-            hij.append(h.predict(X))
-
-        hij = np.array(hij)
-        # scale hij to [-1/N, 1/N]
-        hij = 1. * hij / self.n_estimators
-
-        ## Create QUBO
-        qii = n_data * 1. / (self.n_estimators ** 2) + lmd - 2 * np.dot(hij, y)
-        qij = np.dot(hij, hij.T)
-        Q = dict()
-        Q.update(dict(((k, k), v) for (k, v) in enumerate(qii)))
-        for i in range(self.n_estimators):
-            for j in range(i + 1, self.n_estimators):
-                Q[(i, j)] = qij[i, j]
-
-        # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
-        samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
-
-        # take the optimal solution as estimator weights
-        self.estimator_weights = samples[0]
-
-    def predict(self, X):
-        n_data = len(X)
-        pred_all = np.array([h.predict(X) for h in self.estimators_])
-        temp1 = np.dot(self.estimator_weights, pred_all)
-        T1 = np.sum(temp1, axis=0) / (n_data * self.n_estimators * 1.)
-        y = np.sign(temp1 - T1) #binary classes are either 1 or -1
-
-        return y
-
-
-class WeakRegressor(object):
-    """
-    Collection of weak decision-tree regressors and boosting using AdaBoost.
-    """
-
-    def __init__(self, n_estimators=50, max_depth=3, DT = True, Ada = False, ):
-        self.n_estimators = n_estimators
-        self.estimators_ = []
-        self.max_depth = max_depth
-        self.__construct_wc()
-
-    def __construct_wc(self):
-
-        self.estimators_ = [DecisionTreeRegressor(max_depth=self.max_depth,
-                                                   random_state=np.random.randint(1000000,10000000))
-                            for _ in range(self.n_estimators)]
-#        self.estimators_ = [AdaBoostRegressor(random_state=np.random.randint(1000000,10000000))
-#                            for _ in range(self.n_estimators)]
-
-    def fit(self, X, y):
-        """Fit estimators.
-
-        Args:
-            X (array):
-                2D array of features.
-            y (array):
-                1D array of values.
-        """
-
-        self.estimator_weights = np.zeros(self.n_estimators) #initialize all estimator weights to zero
-
-        d = np.ones(len(X)) / len(X)
-        for i, h in enumerate(self.estimators_): #fit all estimators
-            h.fit(X, y, sample_weight=d)
-            pred = h.predict(X)
-            # For classification one simply compares (pred != y)
-            # For regression we have to define another metric
-            norm = weight_penalty(pred, y)
-            eps = d.dot(norm)
-            if eps == 0: # to prevent divided by zero error
-                eps = 1e-20
-            w = (np.log(1 - eps) - np.log(eps)) / 2
-            d = d * np.exp(- w * y * pred)
-            d = d / d.sum()
-            self.estimator_weights[i] = w
-
-    def predict(self, X):
-        """Predict values of given feature vectors.
-
-        Args:
-            X (array):
-                2D array of features.
-
-        Returns:
-            array
-        """
-
-        if not hasattr(self, 'estimator_weights'):
-            raise Exception('Not Fitted Error!')
-
-        y = np.zeros(len(X))
-
-        for (h, w) in zip(self.estimators_, self.estimator_weights):
-            y += w * h.predict(X)
-
-        y = np.sign(y)
-
-        return y
-
-    def copy(self):
-
-        classifier = WeakRegressor(n_estimators=self.n_estimators, max_depth=self.max_depth)
-        classifier.estimators_ = deepcopy(self.estimators_)
-        if hasattr(self, 'estimator_weights'):
-            classifier.estimator_weights = np.array(self.estimator_weights)
-
-        return classifier
-
-
-class QBoostRegressor(WeakRegressor):
-    """
-    QBoost regressor based on collection of weak decision-tree regressors.
-    """
-    def __init__(self, n_estimators=50, max_depth=3):
-        super(QBoostRegressor, self).__init__(n_estimators=n_estimators,
-                                              max_depth=max_depth)
-        self.Qu = 0.0
-        self.hij = 0.0
-        self.var1 = 0.0
-        self.qij = 0.0
-
-    def fit(self, X, y, sampler, lmd=0.2, **kwargs):
-
-        n_data = len(X)
-
-        # step 1: fit weak classifiers
-        super(QBoostRegressor, self).fit(X, y)
-
-        # step 2: create QUBO
-        hij = []
-        for h in self.estimators_:
-            hij.append(h.predict(X))
-
-        hij = np.array(hij)
-        # scale hij to [-1/N, 1/N]
-        hij = 1. * hij / self.n_estimators
-        self.hij = hij
-        ## Create QUBO
-        qii = n_data * 1. / (self.n_estimators ** 2) + lmd - 2 * np.dot(hij, y)
-        self.var1 = qii
-        qij = np.dot(hij, hij.T)
-        self.qij = qij
-        Q = dict()
-        Q.update(dict(((k, k), v) for (k, v) in enumerate(qii)))
-        for i in range(self.n_estimators):
-            for j in range(i + 1, self.n_estimators):
-                Q[(i, j)] = qij[i, j]
-
-        self.Qu = Q
-        # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
-        samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
-
-        # take the optimal solution as estimator weights
-        # self.estimator_weights = np.mean(samples, axis=0)
-        self.estimator_weights = samples[0]
-
-    def predict(self, X):
-        n_data = len(X)
-        pred_all = np.array([h.predict(X) for h in self.estimators_])
-        temp1 = np.dot(self.estimator_weights, pred_all)
-        norm = np.sum(self.estimator_weights)
-        if norm > 0:
-            y = temp1 / norm
+        # Store only the selected classifiers
+        if drop_unused:
+            weak_classifiers = [wclf for wclf, w in zip(
+                wclf_candidates, weights) if w > 0]
+            weights = weights[weights > 0]
         else:
-            y = temp1
-        return y
+            weak_classifiers = wclf_candidates
+
+        super().__init__(weak_classifiers, weights, weak_clf_scale)
+        self.fit_offset(X)
 
 
-class QBoostPlus(object):
+def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kwargs):
+    """Run QBoost using a series of lambda values and check accuracy against a validation set.
+
+    Args:
+        X (array):
+            2D array of feature vectors.
+        y (array):
+            1D array of class labels (+/- 1).
+        lambda_vals (array):
+            Array of values for regularization parameter, lambda.
+        val_fraction (float):
+            Fraction of given data to set aside for validation.
+        verbose (bool):
+            Print out diagnostic information to screen.
+        kwargs:
+            Passed to QBoost.__init__.
+
+    Returns:
+        QBoostClassifier:
+            QBoost instance with best validation score.
+        lambda:
+            Lambda value corresponding to the best validation score.
     """
-    Quantum boost existing (weak) classifiers.
-    """
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=val_fraction)
 
-    def __init__(self, weak_classifier_list):
-        self.estimators_ = weak_classifier_list
-        self.n_estimators = len(self.estimators_)
-        self.estimator_weights = np.ones(self.n_estimators) #estimator weights will be binary (Dwave output)
+    best_score = -1
+    best_lambda = None
+    best_clf = None
 
-    def fit(self, X, y, sampler, lmd=0.2, **kwargs):
+    if verbose:
+        print('{:7} {} {}:'.format('lambda', 'n_features', 'score'))
 
-        n_data = len(X)
-        # step 1: create QUBO
-        hij = []
-        for h in self.estimators_:
-            hij.append(h.predict(X))
+    for lam in lambda_vals:
+        qb = QBoostClassifier(X_train, y_train, lam, **kwargs)
+        score = qb.score(X_val, y_val)
+        if verbose:
+            print('{:<7.4f} {:<10} {:<6.3f}'.format(
+                lam, len(qb.get_selected_features()), score))
+        if score > best_score:
+            best_score = score
+            best_clf = qb
+            best_lambda = lam
 
-        hij = np.array(hij)
-        # scale hij to [-1/N, 1/N]
-        hij = 1. * hij / self.n_estimators
-
-        ## Create QUBO
-        qii = n_data * 1. / (self.n_estimators ** 2) + lmd - 2 * np.dot(hij, y)
-        qij = np.dot(hij, hij.T)
-        Q = dict()
-        Q.update(dict(((k, k), v) for (k, v) in enumerate(qii)))
-        for i in range(self.n_estimators):
-            for j in range(i + 1, self.n_estimators):
-                Q[(i, j)] = qij[i, j]
-
-        # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
-        samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
-
-        # take the optimal solution as estimator weights
-        self.estimator_weights = samples[0]
-
-    def predict(self, X):
-
-        n_data = len(X)
-        T = 0
-        y = np.zeros(n_data)
-        for i, h in enumerate(self.estimators_):
-            y0 = self.estimator_weights[i] * h.predict(X)  # prediction of weak classifier
-            y += y0
-            T += np.sum(y0)
-
-        y = np.sign(y - T / (n_data*self.n_estimators))
-
-        return y
-
-
-class QBoostPlusRegression(object):
-    """
-    Quantum boost existing (weak) regressors.
-    """
-
-    def __init__(self, weak_Regressor_list):
-        self.estimators_ = weak_Regressor_list
-        self.n_estimators = len(self.estimators_)
-        self.estimator_weights = np.ones(self.n_estimators)
-
-    def fit(self, X, y, sampler, lmd=0.2, **kwargs):
-
-        n_data = len(X)
-        # step 1: create QUBO
-        hij = []
-        for h in self.estimators_:
-            hij.append(h.predict(X))
-
-        hij = np.array(hij)
-        # scale hij to [-1/N, 1/N]
-        hij = 1. * hij / self.n_estimators
-
-        ## Create QUBO
-        qii = n_data * 1. / (self.n_estimators ** 2) + lmd - 2 * np.dot(hij, y)
-        qij = np.dot(hij, hij.T)
-        Q = dict()
-        Q.update(dict(((k, k), v) for (k, v) in enumerate(qii)))
-        for i in range(self.n_estimators):
-            for j in range(i + 1, self.n_estimators):
-                Q[(i, j)] = qij[i, j]
-
-        # step 3: optimize QUBO
-        res = sampler.sample_qubo(Q, label='Example - Qboost', **kwargs)
-        samples = np.array([[samp[k] for k in range(self.n_estimators)] for samp in res])
-
-        # take the optimal solution as estimator weights
-        self.estimator_weights = samples[0]
-
-    def predict(self, X):
-
-        n_data = len(X)
-        T = 0
-        y = np.zeros(n_data)
-        for i, h in enumerate(self.estimators_):
-            y0 = self.estimator_weights[i] * h.predict(X)  # prediction of weak classifier
-            y += y0
-            T += np.sum(y0)
-
-        norm = np.sum(self.estimator_weights)
-        if norm > 0:
-            y = y / norm
-        else:
-            y = y
-
-        return y
+    return best_clf, lam
