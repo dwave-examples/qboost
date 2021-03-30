@@ -80,6 +80,9 @@ if __name__ == '__main__':
         else:
             qboost = QBoostClassifier(X_train, y_train, 0.01)
 
+        if args.verbose:
+            qboost.report_baseline(X_test, y_test)
+
         print('Informative features:', list(range(n_informative)))
         print('Selected features:', qboost.get_selected_features())
 
@@ -107,6 +110,9 @@ if __name__ == '__main__':
                 X_train, y_train, lambdas, verbose=args.verbose)
         else:
             qboost = QBoostClassifier(X_train, y_train, 0.01)
+
+        if args.verbose:
+            qboost.report_baseline(X_test, y_test)
 
         print('Number of selected features:',
               len(qboost.get_selected_features()))
