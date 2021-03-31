@@ -284,6 +284,28 @@ class QBoostClassifier(EnsembleClassifier):
         super().__init__(weak_classifiers, weights, weak_clf_scale)
         self.fit_offset(X)
 
+        # Save candidates so we can provide a baseline accuracy report.
+        self._wclf_candidates = wclf_candidates
+
+    def report_baseline(self, X, y):
+        """Report accuracy of weak classifiers.
+
+        This provides context for interpreting the performance of the boosted
+        classifier.
+        """
+
+        from tabulate import tabulate
+
+        scores = []
+        for clf in self._wclf_candidates:
+            scores.append(accuracy_score(y, clf.predict(X)))
+        scores = np.array(scores)
+        data = [[len(scores), scores.min(), scores.mean(), scores.max(), scores.std()]]
+        headers = ['count', 'min', 'mean', 'max', 'std']
+
+        print('Accuracy of weak classifiers (score on test set):')
+        print(tabulate(data, headers=headers, floatfmt='.3f'))
+
 
 def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kwargs):
     """Run QBoost using a series of lambda values and check accuracy against a validation set.
