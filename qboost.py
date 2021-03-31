@@ -20,6 +20,8 @@ from sklearn.metrics import accuracy_score
 import dimod
 from dwave.system import LeapHybridSampler
 
+from tabulate import tabulate
+
 
 class DecisionStumpClassifier:
     """Decision tree classifier that operates on a single feature with a single splitting rule.
@@ -283,6 +285,23 @@ class QBoostClassifier(EnsembleClassifier):
 
         super().__init__(weak_classifiers, weights, weak_clf_scale)
         self.fit_offset(X)
+
+        # Save candidates so we can provide a baseline accuracy report.
+        self._wclf_candidates = wclf_candidates
+
+    def report_baseline(self, X, y):
+        """Report accuracy of weak classifiers.
+
+        This provides context for interpreting the performance of the boosted
+        classifier.
+        """
+        scores = np.array([accuracy_score(y, clf.predict(X))
+                           for clf in self._wclf_candidates])
+        data = [[len(scores), scores.min(), scores.mean(), scores.max(), scores.std()]]
+        headers = ['count', 'min', 'mean', 'max', 'std']
+
+        print('Accuracy of weak classifiers (score on test set):')
+        print(tabulate(data, headers=headers, floatfmt='.3f'))
 
 
 def qboost_lambda_sweep(X, y, lambda_vals, val_fraction=0.4, verbose=False, **kwargs):
