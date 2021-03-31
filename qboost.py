@@ -296,10 +296,8 @@ class QBoostClassifier(EnsembleClassifier):
 
         from tabulate import tabulate
 
-        scores = []
-        for clf in self._wclf_candidates:
-            scores.append(accuracy_score(y, clf.predict(X)))
-        scores = np.array(scores)
+        scores = np.array([accuracy_score(y, clf.predict(X))
+                           for clf in self._wclf_candidates])
         data = [[len(scores), scores.min(), scores.mean(), scores.max(), scores.std()]]
         headers = ['count', 'min', 'mean', 'max', 'std']
 
