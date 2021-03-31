@@ -20,6 +20,8 @@ from sklearn.metrics import accuracy_score
 import dimod
 from dwave.system import LeapHybridSampler
 
+from tabulate import tabulate
+
 
 class DecisionStumpClassifier:
     """Decision tree classifier that operates on a single feature with a single splitting rule.
@@ -293,9 +295,6 @@ class QBoostClassifier(EnsembleClassifier):
         This provides context for interpreting the performance of the boosted
         classifier.
         """
-
-        from tabulate import tabulate
-
         scores = np.array([accuracy_score(y, clf.predict(X))
                            for clf in self._wclf_candidates])
         data = [[len(scores), scores.min(), scores.mean(), scores.max(), scores.std()]]
