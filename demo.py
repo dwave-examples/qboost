@@ -34,6 +34,8 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--cross-validation', action='store_true',
                         help='use cross-validation to estimate the value of the regularization parameter')
+    parser.add_argument('--lam', default=0.01, type=float,
+                        help='regularization parameter (default: %(default)s)')
 
     # Note: required=True could be useful here, but not available
     # until Python 3.7
@@ -78,7 +80,7 @@ if __name__ == '__main__':
             qboost, lam = qboost_lambda_sweep(
                 X_train, y_train, lambdas, verbose=args.verbose)
         else:
-            qboost = QBoostClassifier(X_train, y_train, 0.01)
+            qboost = QBoostClassifier(X_train, y_train, args.lam)
 
         if args.verbose:
             qboost.report_baseline(X_test, y_test)
@@ -109,7 +111,7 @@ if __name__ == '__main__':
             qboost, lam = qboost_lambda_sweep(
                 X_train, y_train, lambdas, verbose=args.verbose)
         else:
-            qboost = QBoostClassifier(X_train, y_train, 0.01)
+            qboost = QBoostClassifier(X_train, y_train, args.lam)
 
         if args.verbose:
             qboost.report_baseline(X_test, y_test)
