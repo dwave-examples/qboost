@@ -75,6 +75,7 @@ class QBoostTest(unittest.TestCase):
 
 
 class IntegrationTest(unittest.TestCase):
+    @unittest.skipIf(os.getenv('SKIP_INT_TESTS'), "Skipping integration test.")
     def test_integration(self):
         file_path = os.path.join(example_dir, "demo.py")
 
