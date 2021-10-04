@@ -1,6 +1,4 @@
 dwave-ocean-sdk>=3.3.0
-scikit-learn==0.23.1; python_version>='3.6'
-scikit-learn==0.22.2.post1; python_version<'3.6'
+scikit-learn==1.0
 tabulate>=0.8.7
-matplotlib==3.3.4; python_version>'3.5'
-matplotlib==3.0.3; python_version=='3.5'
+matplotlib==3.3.4
